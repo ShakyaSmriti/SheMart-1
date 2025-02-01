@@ -10,17 +10,42 @@ const Login = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [gender, setGender] = useState("");
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
+    // Ensure gender is selected for "Sign Up" state
+    if (currentState === "Sign Up" && !gender) {
+      return toast.error("Please select a gender.");
+    }
+
+    // Ensure passwords match
+    if (currentState === "Sign Up" && password !== confirmPassword) {
+      return toast.error("Passwords do not match.");
+    }
+
     try {
       if (currentState === "Sign Up") {
+        // Log the values being sent for debugging
+        console.log("Registering user with:", {
+          name,
+          email,
+          password,
+          confirmPassword,
+          gender,
+        });
+
+        // Send the request to register the user
         const response = await axios.post(`${backendUrl}/api/user/register`, {
           name,
           email,
           password,
+          confirmPassword,
+          gender, // Ensure gender is sent correctly
         });
+
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem("token", response.data.token); // Save token for Sign Up
@@ -29,10 +54,12 @@ const Login = () => {
           toast.error(response.data.message);
         }
       } else {
+        // For login, do not include gender
         const response = await axios.post(`${backendUrl}/api/user/login`, {
           email,
           password,
         });
+
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem("token", response.data.token); // Save token for Login
@@ -54,7 +81,7 @@ const Login = () => {
 
   useEffect(() => {
     if (token) {
-      navigate("/");
+      navigate("/"); // Redirect after successful login or registration
     }
   }, [token]);
 
@@ -80,6 +107,7 @@ const Login = () => {
           required
         />
       )}
+
       <input
         onChange={(e) => setEmail(e.target.value)}
         value={email}
@@ -97,20 +125,74 @@ const Login = () => {
         required
       />
 
+      {currentState !== "Login" && (
+        <>
+          <input
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            value={confirmPassword}
+            className="w-full px-3 py-2 border border-gray-800"
+            type="password"
+            placeholder="Confirm Password"
+            required
+          />
+
+          <div className="flex flex-col gap-2 mt-2 w-full px-3 py-2 border border-gray-800">
+            <label className="text-gray-700 font-medium">Select Gender:</label>
+            <div className="flex gap-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="Male"
+                  checked={gender === "Male"}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="mr-2"
+                />
+                Male
+              </label>
+
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="Female"
+                  checked={gender === "Female"}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="mr-2"
+                />
+                Female
+              </label>
+
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="Other"
+                  checked={gender === "Other"}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="mr-2"
+                />
+                Other
+              </label>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Footer Section */}
       <div className="w-full flex justify-between text-sm mt-1">
         <p className="cursor-pointer">Forgot your password?</p>
         {currentState === "Login" ? (
           <p
             onClick={() => setCurrentState("Sign Up")}
-            className="cursor-pointer "
+            className="cursor-pointer"
           >
             Create account
           </p>
         ) : (
           <p
             onClick={() => setCurrentState("Login")}
-            className="cursor-pointer "
+            className="cursor-pointer"
           >
             Login Here
           </p>

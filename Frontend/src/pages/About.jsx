@@ -1,7 +1,6 @@
 import React from "react";
 import Title from "./../components/Title";
 import { assets } from "../assets/assets";
-import NewsletterBox from "../components/NewsletterBox";
 
 const About = () => {
   return (
@@ -33,7 +32,7 @@ const About = () => {
           </p>
           <b className="text-gray-800">Our Mission</b>
           <p>
-            Our mission at Forever is to empower customers with choice,
+            Our mission at SheMart is to empower customers with choice,
             convenience, and confidence. We're dedicated to providing a seamless
             shopping experience that exceeds expectations, from browsing and
             ordering to delivery and beyond.
@@ -71,7 +70,7 @@ const About = () => {
         </div>
       </div>
 
-      {/* <NewsletterBox /> */}
+     
     </div>
   );
 };

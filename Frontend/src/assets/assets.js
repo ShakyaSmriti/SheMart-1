@@ -115,15 +115,13 @@ export const assets = {
 };
 
 export const products = [
-  ///**************/
-  //**************/
   //*********** Dress Subcategory************//
   {
     _id: "aaaada",
-    name: "Women Outing Dress with new collection",
+    name: "Flirty Blue Romper",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Show off your playful side with this flirty blue romper. The relaxed fit make it perfect for brunches, beach trips, or weekend getaways.",
+    price: 1900,
     image: [p_img],
     category: "Women",
     subCategory: "Dress",
@@ -133,10 +131,10 @@ export const products = [
   },
   {
     _id: "aaaadb",
-    name: "Women Outing Dress with new collection",
+    name: "Floral Cut Dress",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Brighten up your wardrobe with this vibrant floral dress, perfect for brunches, garden parties, or any daytime event. Its comfortable fit and stunning print are sure to catch attention.",
+    price: 2500,
     image: [p_img1],
     category: "Women",
     subCategory: "Dress",
@@ -146,10 +144,10 @@ export const products = [
   },
   {
     _id: "aaaadc",
-    name: "Women Outing Dress with new collection",
+    name: "Sleeveless Bodycon",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Sleek and modern, this sleeveless dress is designed to make a statement. Pair it with a jacket for a more polished office look or wear it solo for a fun night out.",
+    price: 1550,
     image: [p_img2],
     category: "Women",
     subCategory: "Dress",
@@ -159,10 +157,10 @@ export const products = [
   },
   {
     _id: "aaaadd",
-    name: "Women Outing Dress with new collection",
+    name: "Floral Midi Dress",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Brighten up your wardrobe with this vibrant floral midi dress, perfect for brunches, garden parties, or any daytime event",
+    price: 3000,
     image: [p_img3],
     category: "Women",
     subCategory: "Dress",
@@ -172,10 +170,10 @@ export const products = [
   },
   {
     _id: "aaaade",
-    name: "Women Outing Dress with new collection",
+    name: "Fitted Sleeveless Dress",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "This versatile sleeveless dress offers a sleek, tailored fit that accentuates your silhouette. Perfect for layering with a blazer for a professional appearance or wearing alone for a chic, casual look in the evening.",
+    price: 1700,
     image: [p_img4],
     category: "Women",
     subCategory: "Dress",
@@ -185,10 +183,10 @@ export const products = [
   },
   {
     _id: "aaaadf",
-    name: "Women Outing Dress with new collection",
+    name: "Elegant Cocktail Dress",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "This stunning cocktail dress combines sophistication and style with its flattering and timeless design. Pair with heels and statement accessories for the perfect finishing touch.",
+    price: 2500,
     image: [p_img5],
     category: "Women",
     subCategory: "Dress",
@@ -198,10 +196,10 @@ export const products = [
   },
   {
     _id: "aaaadg",
-    name: "Women Outing Dress with new collection",
+    name: "Linen Long Dress",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Embrace laid-back elegance with this long linen dress, designed for comfort and style.",
+    price: 950,
     image: [p_img6],
     category: "Women",
     subCategory: "Dress",
@@ -211,10 +209,10 @@ export const products = [
   },
   {
     _id: "aaaadh",
-    name: "Women Outing Dress with new collection",
+    name: "Side-cut One Piece ",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Turn heads with this stylish side-cut one-piece dress. Featuring sleek cut-out details for a hint of allure, this dress combines modern design with a flattering fit.",
+    price: 1250,
     image: [p_img7],
     category: "Women",
     subCategory: "Dress",
@@ -224,10 +222,10 @@ export const products = [
   },
   {
     _id: "aaaadi",
-    name: "Women Outing Dress with new collection",
+    name: "Tshirt-Dress",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "The perfect blend of comfort and style, this t-shirt dress is casual yet chic. Pair with sneakers for a day out or dress it up with accessories.",
+    price: 3200,
     image: [p_img8],
     category: "Women",
     subCategory: "Dress",
@@ -237,10 +235,10 @@ export const products = [
   },
   {
     _id: "aaaadj",
-    name: "Women Outing Dress with new collection",
+    name: "Ruffle Dress",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Add a touch of elegance to your wardrobe with this stunning green dress featuring delicate ruffled sleeves. The flowing design and vibrant hue create a fresh, feminine look that’s perfect for any occasion.",
+    price: 2850,
     image: [p_img9],
     category: "Women",
     subCategory: "Dress",
@@ -250,10 +248,10 @@ export const products = [
   },
   {
     _id: "aaaadk",
-    name: "Women Outing Dress with new collection",
+    name: "Silk Dress",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Exude glamour and sophistication in this luxurious backless silk dress. The smooth, glossy fabric drapes beautifully, while the open back adds a bold, sultry touch.",
+    price: 2500,
     image: [p_img10],
     category: "Women",
     subCategory: "Dress",
@@ -263,10 +261,10 @@ export const products = [
   },
   {
     _id: "aaaadl",
-    name: "Women Outing Dress with new collection",
+    name: "Side-cut One Piece",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Make a statement with this trendy side-cut one-piece dress. Perfect for parties, dinner dates, or special events, this dress pairs effortlessly with bold accessories and heels for a head-turning ensemble. ",
+    price: 2900,
     image: [p_img11],
     category: "Women",
     subCategory: "Dress",
@@ -276,10 +274,10 @@ export const products = [
   },
   {
     _id: "aaaadm",
-    name: "Women Outing Dress with new collection",
+    name: "Bridal Gown",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Walk down the aisle in timeless elegance with this breathtaking bridal gown. Featuring intricate lace details, a flowing train, and a flattering silhouette, this gown is designed to make your special day unforgettable.",
+    price: 45000,
     image: [p_img12],
     category: "Women",
     subCategory: "Dress",
@@ -289,10 +287,10 @@ export const products = [
   },
   {
     _id: "aaaadn",
-    name: "Women Outing Dress with new collection",
+    name: "Army Cotton Dress",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Embrace a blend of comfort and style with this army-inspired cotton dress. Featuring a structured yet relaxed fit, its breathable fabric ensures all-day ease. Perfect for casual outings, pair it with sneakers or ankle boots for an effortlessly cool look.",
+    price: 1850,
     image: [p_img13],
     category: "Women",
     subCategory: "Dress",
@@ -302,10 +300,10 @@ export const products = [
   },
   {
     _id: "aaaado",
-    name: "Women Outing Dress with new collection",
+    name: "Casual Wrap Dress",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "A versatile addition to your closet, this wrap dress offers a flattering fit with a waist-defining design. Great for both casual days at the office or weekend brunches.",
+    price: 4500,
     image: [p_img14],
     category: "Women",
     subCategory: "Dress",
@@ -315,10 +313,10 @@ export const products = [
   },
   {
     _id: "aaaadp",
-    name: "Women Outing Dress with new collection",
+    name: "Flared Romper",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Stay relaxed and stylish with this flowy romper. Its soft, lightweight fabric and loose fit make it the perfect choice for a laid-back day.",
+    price: 2200,
     image: [p_img15],
     category: "Women",
     subCategory: "Dress",
@@ -544,10 +542,10 @@ export const products = [
   //******Tops Subcategory************//
   {
     _id: "aaaata",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Classic Button-Up Shirt",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "A timeless piece, this button-up shirt combines crisp tailoring with a relaxed fit, making it perfect for both workwear and casual outings.",
+    price: 1350,
     image: [p_img32],
     category: "Women",
     subCategory: "Tops",
@@ -557,10 +555,10 @@ export const products = [
   },
   {
     _id: "aaaatb",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Maroon Mesh-Top",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Make a bold fashion statement with this trendy mesh top. Featuring a sheer, lightweight design, it’s perfect for layering over a bralette or camisole for a chic and edgy look.",
+    price: 2200,
     image: [p_img33],
     category: "Women",
     subCategory: "Tops",
@@ -568,12 +566,13 @@ export const products = [
     date: 1716633245448,
     bestseller: false,
   },
+
   {
     _id: "aaaatc",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Cami Top",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "This versatile U-shaped cami top is a wardrobe essential. With its flattering neckline and sleek design, it’s perfect for layering or wearing on its own during warmer days. Crafted from soft, breathable fabric, it pairs effortlessly with jeans, skirts, or shorts for a casual yet stylish look.",
+    price: 850,
     image: [p_img34],
     category: "Women",
     subCategory: "Tops",
@@ -583,10 +582,10 @@ export const products = [
   },
   {
     _id: "aaaatd",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Tie-Dye Top",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Bring a burst of color to your wardrobe with this eye-catching tie-dye top. Featuring a playful blend of hues and a relaxed fit, it’s perfect for casual outings or lounging in style.",
+    price: 1250,
     image: [p_img35],
     category: "Women",
     subCategory: "Tops",
@@ -596,10 +595,10 @@ export const products = [
   },
   {
     _id: "aaaate",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Half-zip Crop Top",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Featuring a stylish zipper detail and a flattering cropped fit, it’s perfect for casual outings or athleisure looks. Made from comfortable, stretchy fabric, it pairs effortlessly with high-waisted leggings or jeans for a sleek, modern style.",
+    price: 1400,
     image: [p_img36],
     category: "Women",
     subCategory: "Tops",
@@ -609,10 +608,10 @@ export const products = [
   },
   {
     _id: "aaaatf",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Off-Shoulder Top",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Add a flirty vibe to your outfit with this off-shoulder top. The flowy silhouette and delicate design make it ideal for summer days and beach vacations.",
+    price: 1900,
     image: [p_img37],
     category: "Women",
     subCategory: "Tops",
@@ -622,10 +621,10 @@ export const products = [
   },
   {
     _id: "aaaatg",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Floral Shirt",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Embrace effortless elegance with this timeless floral shirt. Featuring a vibrant pattern of blooming flowers, this shirt adds a fresh, cheerful vibe to any outfit.",
+    price: 1650,
     image: [p_img38],
     category: "Women",
     subCategory: "Tops",
@@ -635,10 +634,10 @@ export const products = [
   },
   {
     _id: "aaaath",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Buttoned Blouse",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      " Elevate your style with this classic buttoned blouse. Featuring a sleek silhouette and a row of delicate buttons, this blouse exudes sophistication and versatility. ",
+    price: 1000,
     image: [p_img39],
     category: "Women",
     subCategory: "Tops",
@@ -648,10 +647,10 @@ export const products = [
   },
   {
     _id: "aaaati",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Front-Knot Top",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "This casual yet trendy top features a knotted detail at the front, adding a playful touch to any outfit. Pair it with shorts or jeans for an easygoing look.",
+    price: 1750,
     image: [p_img40],
     category: "Women",
     subCategory: "Tops",
@@ -661,10 +660,10 @@ export const products = [
   },
   {
     _id: "aaaatj",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Round neck Cotton Top",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Keep it simple and comfortable with this round neck cotton top. Designed for everyday wear, this soft and breathable top is a perfect staple for your wardrobe.",
+    price: 650,
     image: [p_img41],
     category: "Women",
     subCategory: "Tops",
@@ -674,10 +673,10 @@ export const products = [
   },
   {
     _id: "aaaatk",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "Elegant Corset Top",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
-    price: 190,
+      "Turn heads with this chic corset top, designed to accentuate your silhouette. Featuring a structured fit with a flattering bodice, it blends vintage charm with modern sophistication.",
+    price: 3200,
     image: [p_img42],
     category: "Women",
     subCategory: "Tops",
@@ -687,9 +686,9 @@ export const products = [
   },
   {
     _id: "aaaatl",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
+      ".",
     price: 190,
     image: [p_img43],
     category: "Women",
@@ -700,9 +699,9 @@ export const products = [
   },
   {
     _id: "aaaatm",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
+      "",
     price: 190,
     image: [p_img44],
     category: "Women",
@@ -713,9 +712,9 @@ export const products = [
   },
   {
     _id: "aaaatn",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
+      "",
     price: 190,
     image: [p_img45],
     category: "Women",
@@ -726,9 +725,9 @@ export const products = [
   },
   {
     _id: "aaaato",
-    name: "Women Palazzo Pants with Waist Belt",
+    name: "",
     description:
-      "A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.",
+      "",
     price: 190,
     image: [p_img46],
     category: "Women",

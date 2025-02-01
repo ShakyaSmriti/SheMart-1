@@ -172,7 +172,7 @@ const Collection = () => {
                 value={"Stiletto"}
                 onChange={toggleSubCategory}
               />
-              Stiletto
+              Stiletto Heels
             </p>
             <p className="flex gap-2">
               <input

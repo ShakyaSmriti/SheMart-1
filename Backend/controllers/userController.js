@@ -17,7 +17,7 @@ const loginUser = async (req, res) => {
     if (!user) {
       return res
         .status(200) // Still return 200 to avoid "400 Bad Request" from frontend
-        .json({ success: false, message: "Invalid credentials" });
+        .json({ success: false, message: "Invalid Email or Password" });
     }
 
     // Validate password
@@ -42,8 +42,10 @@ const loginUser = async (req, res) => {
 // Router for user register
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    // console.log(name, email, password);
+    const { name, email, password, confirmPassword, gender } = req.body;
+    console.log(req.body);
+
+    // console.log(req.body);
 
     // Check if user already exists
     const exists = await userModel.findOne({ email });
@@ -68,12 +70,33 @@ const registerUser = async (req, res) => {
       });
     }
 
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match.",
+      });
+    }
+
+    // Validate gender
+    const allowedGenders = ["Male", "Female", "Other"];
+    if (!allowedGenders.includes(gender)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid gender. Please select Male, Female, or Other.",
+      });
+    }
+
     // Proceed with registration if validations pass
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new userModel({ name, email, password: hashedPassword });
+    const newUser = new userModel({
+      name,
+      email,
+      password: hashedPassword,
+      gender,
+    });
 
     const user = await newUser.save();
-    // console.log(user);
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     res.status(201).json({
@@ -82,7 +105,6 @@ const registerUser = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.error(error);
     res
       .status(500)
       .json({ success: false, message: "Server error", error: error.message });
