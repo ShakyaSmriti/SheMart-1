@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { assets, products } from "./../assets/assets";
+import { assets } from "./../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
@@ -7,25 +7,28 @@ import CartTotal from "../components/CartTotal";
 const Cart = () => {
   const { products, currency, cartItems, updateQuantity, navigate } =
     useContext(ShopContext);
-  // console.log("Products in context:", products);
 
   const [cartData, setCartData] = useState([]);
 
   useEffect(() => {
-    const tempData = [];
-    for (const items in cartItems) {
-      for (const item in cartItems[items]) {
-        if (cartItems[items][item] > 0) {
-          tempData.push({
-            _id: items,
-            size: item,
-            quantity: cartItems[items][item],
-          });
+    if (products.length > 0) {
+      const tempData = [];
+
+      for (const productId in cartItems) {
+        for (const size in cartItems[productId]) {
+          if (cartItems[productId][size] > 0) {
+            tempData.push({
+              _id: productId,
+              size,
+              quantity: cartItems[productId][size],
+            });
+          }
         }
       }
+
+      setCartData(tempData);
     }
-    setCartData(tempData);
-  }, [cartItems]);
+  }, [cartItems, products]);
 
   const handleCheckout = () => {
     if (cartData.length === 0) {
@@ -43,29 +46,24 @@ const Cart = () => {
         <Title text1={"YOUR"} text2={"CART"} />
       </div>
 
-      <div className="">
+      <div>
         {cartData.map((item, index) => {
           const productData = products.find(
             (product) => product._id === item._id
           );
-
           if (!productData) {
             console.warn(`Product with ID ${item._id} not found`);
             return null; // Skip rendering this item
           }
 
-          // Determine if the product has a video or an image
-          const hasVideo = productData.video?.length > 0;
-          const hasImage = productData.image?.length > 0;
-
           return (
             <div
-              className="py-4 border-t border-b text-gray-700 grid grid-cols-[4fr_0.5fr_o.5fr] sm:grid-cols-[4fr_2fr_0.5fr] items-center gap-4"
-              key={index}
+              className="py-4 border-t border-b text-gray-700 grid grid-cols-[4fr_0.5fr_0.5fr] sm:grid-cols-[4fr_2fr_0.5fr] items-center gap-4"
+              key={`${item._id}-${item.size}`} // Unique key per product and size
             >
               <div className="flex items-start gap-6">
-                {/* Render video or image dynamically */}
-                {hasVideo ? (
+                {/* Ensure only ONE product image/video is displayed */}
+                {productData.video?.length > 0 ? (
                   <video
                     className="w-16 sm:w-20"
                     src={productData.video[0]}
@@ -73,7 +71,7 @@ const Cart = () => {
                     loop
                     muted
                   />
-                ) : hasImage ? (
+                ) : productData.image?.length > 0 ? (
                   <img
                     className="w-16 sm:w-20"
                     src={productData.image[0]}
@@ -99,21 +97,20 @@ const Cart = () => {
                 </div>
               </div>
 
+              {/* Only update quantity, no new elements */}
               <input
-                onChange={(e) =>
-                  e.target.value === "" || e.target.value === "0"
-                    ? null
-                    : updateQuantity(
-                        item._id,
-                        item.size,
-                        Number(e.target.value)
-                      )
-                }
+                onChange={(e) => {
+                  const newValue = Number(e.target.value);
+                  if (newValue > 0) {
+                    updateQuantity(item._id, item.size, newValue);
+                  }
+                }}
                 className="border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1"
                 type="number"
                 min={1}
-                defaultValue={item.quantity}
+                value={item.quantity} // Use value instead of defaultValue
               />
+
               <img
                 onClick={() => updateQuantity(item._id, item.size, 0)}
                 className="w-4 mr-4 sm:w-5 cursor-pointer"
@@ -128,7 +125,6 @@ const Cart = () => {
       <div className="flex justify-end my-20">
         <div className="w-full sm:w-[450px]">
           <CartTotal />
-
           <div className="w-full text-end">
             <button
               onClick={handleCheckout}

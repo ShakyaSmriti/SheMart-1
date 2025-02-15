@@ -1,12 +1,13 @@
 import { createContext, useEffect, useState } from "react";
-import { products } from "../assets/assets";
+// import { products } from "../assets/assets";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
-  const currency = "Rs";
+  const currency = "Rs.";
   const delivery_fee = 10;
   const backendUrl =
     import.meta.env.VITE_BACKEND_URL || "http://localhost:4001";
@@ -15,6 +16,7 @@ const ShopContextProvider = (props) => {
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState({});
   const [cartData, setCartData] = useState({});
+  const [products, setProducts] = useState([]);
   const [token, setToken] = useState("");
   const navigate = useNavigate();
 
@@ -25,28 +27,47 @@ const ShopContextProvider = (props) => {
     }
 
     const productData = products.find((product) => product._id === itemId);
-
     if (!productData) {
       toast.error("Product not found");
       return;
     }
 
-    let cartData = structuredClone(cartItems);
+    // Ensure cartItems exists before cloning
+    let cartData = cartItems ? structuredClone(cartItems) : {};
 
-    if (cartData[itemId]) {
-      if (cartData[itemId][size]) {
-        cartData[itemId][size] += 1;
-      } else {
-        cartData[itemId][size] = 1;
-      }
-    } else {
-      cartData[itemId] = {
-        [size]: 1,
-        type: productData.video ? "video" : "image", // Distinguish video/image
-      };
+    if (!cartData[itemId]) {
+      cartData[itemId] = {};
+    }
+
+    cartData[itemId][size] = (cartData[itemId][size] || 0) + 1;
+
+    // Add product type based on whether it's a video or image
+    if (!cartData[itemId].type) {
+      cartData[itemId].type = productData.video ? "video" : "image";
     }
 
     setCartItems(cartData);
+
+    // adding addToCart api
+    if (token) {
+      if (!backendUrl) {
+        console.error("Backend URL is not defined");
+        return;
+      }
+
+      try {
+        await axios.post(
+          `${backendUrl}/api/cart/add`, // Ensure correct URL formatting
+          { itemId, size },
+          { headers: { token } } // Use standard Authorization header
+        );
+      } catch (error) {
+        console.error("Error adding to cart:", error);
+        const errorMessage =
+          error.response?.data?.message || "Failed to add item to cart.";
+        toast.error(errorMessage);
+      }
+    }
   };
 
   const getCartCount = () => {
@@ -68,6 +89,20 @@ const ShopContextProvider = (props) => {
     let cartData = structuredClone(cartItems);
     cartData[itemId][size] = quantity;
     setCartItems(cartData);
+
+    //adding update api
+    if (token) {
+      try {
+        await axios.post(
+          backendUrl + "/api/cart/update",
+          { itemId, size, quantity },
+          { headers: { token } }
+        );
+      } catch (error) {
+        console.log(error);
+        toast.error(error.message);
+      }
+    }
   };
 
   const getCartAmount = () => {
@@ -85,9 +120,56 @@ const ShopContextProvider = (props) => {
     return totalAmount;
   };
 
+  const getProductsData = async () => {
+    try {
+      const response = await axios.get(backendUrl + "/api/product/list");
+      if (response.data.success) {
+        setProducts(response.data.products);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
+    }
+  };
+
+  const getUserCart = async (token) => {
+    try {
+      if (!token) {
+        throw new Error("No authentication token provided");
+      }
+
+      const response = await axios.post(
+        `${backendUrl}/api/cart/get`, // Ensure proper URL formatting
+        {},
+        {
+          headers: { token }, // Use Authorization header
+        }
+      );
+
+      if (response.data.success) {
+        setCartItems(response.data.cartData);
+      } else {
+        throw new Error(response.data.message || "Failed to fetch cart data");
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching cart:",
+        error.response?.data || error.message
+      );
+      toast.error(error.response?.data?.message || "Error fetching cart data");
+    }
+  };
+
+  useEffect(() => {
+    getProductsData();
+  }, []);
+
   useEffect(() => {
     if (!token && localStorage.getItem("token")) {
       setToken(localStorage.getItem("token"));
+      getUserCart(localStorage.getItem("token"));
     }
   }, []);
 
@@ -112,7 +194,7 @@ const ShopContextProvider = (props) => {
     setToken,
     token,
   };
-  // console.log("ShopContext backendUrl:", backendUrl); // Debug log
+
   return (
     <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>
   );

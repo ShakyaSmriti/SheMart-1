@@ -33,37 +33,13 @@ const PlaceOrder = () => {
           type="email"
           placeholder="Email address"
         />
+
         <input
           className="border border-gray rounded py-1.5 px-3.5 w-full"
           type="text"
-          placeholder="Street"
+          placeholder="Address"
         />
 
-        <div className="flex gap-3">
-          <input
-            className="border border-gray rounded py-1.5 px-3.5 w-full"
-            type="text"
-            placeholder="City"
-          />
-          <input
-            className="border border-gray rounded py-1.5 px-3.5 w-full"
-            type="text"
-            placeholder="State"
-          />
-        </div>
-
-        <div className="flex gap-3">
-          <input
-            className="border border-gray rounded py-1.5 px-3.5 w-full"
-            type="number"
-            placeholder="Zipcode"
-          />
-          <input
-            className="border border-gray rounded py-1.5 px-3.5 w-full"
-            type="text"
-            placeholder="Country"
-          />
-        </div>
         <input
           className="border border-gray rounded py-1.5 px-3.5 w-full"
           type="Number"

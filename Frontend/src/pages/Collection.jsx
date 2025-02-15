@@ -79,7 +79,7 @@ const Collection = () => {
   useEffect(() => {
     // console.log("filter applied");
     applyFilterCategory();
-  }, [bestSeller, subCategory, search, showSearch]);
+  }, [bestSeller, subCategory, search, showSearch, products]);
 
   useEffect(() => {
     sortProduct(sortType);
@@ -172,7 +172,7 @@ const Collection = () => {
                 value={"Stiletto"}
                 onChange={toggleSubCategory}
               />
-              Stiletto Heels
+              Stiletto
             </p>
             <p className="flex gap-2">
               <input

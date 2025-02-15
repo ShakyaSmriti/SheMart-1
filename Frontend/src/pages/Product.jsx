@@ -48,7 +48,7 @@ const Product = () => {
 
   useEffect(() => {
     fetchProductData();
-  }, [productId]);
+  }, [productId, products]);
 
   return productData ? (
     <div className="border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100">
@@ -84,13 +84,13 @@ const Product = () => {
           <div className="w-full sm:w-[80%]">
             {productData.image && productData.image.length > 0 ? (
               <img
-                className="w-full h-auto aspect-auto object-contain"
+                className="w-full h-auto aspect-[1/1] object-contain"
                 src={media}
                 alt="Main Product"
               />
             ) : productData.video && productData.video.length > 0 ? (
               <video
-                className="w-full aspect-auto object-contain"
+                className="w-full aspect-[1/1] object-contain"
                 src={media}
                 autoPlay
                 loop

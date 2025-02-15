@@ -75,7 +75,7 @@ import a_hoops4 from "./hoops4.mp4";
 import a_studs2 from "./studs2.mp4";
 
 import logo from "./logo.png";
-import hero_img from "./hero_img.png";
+import hero_img from "./hero_img.jpg";
 import cart_icon from "./cart_icon.png";
 import bin_icon from "./bin_icon.png";
 import dropdown_icon from "./dropdown_icon.png";
@@ -687,8 +687,7 @@ export const products = [
   {
     _id: "aaaatl",
     name: "",
-    description:
-      ".",
+    description: ".",
     price: 190,
     image: [p_img43],
     category: "Women",
@@ -700,8 +699,7 @@ export const products = [
   {
     _id: "aaaatm",
     name: "",
-    description:
-      "",
+    description: "",
     price: 190,
     image: [p_img44],
     category: "Women",
@@ -713,8 +711,7 @@ export const products = [
   {
     _id: "aaaatn",
     name: "",
-    description:
-      "",
+    description: "",
     price: 190,
     image: [p_img45],
     category: "Women",
@@ -726,8 +723,7 @@ export const products = [
   {
     _id: "aaaato",
     name: "",
-    description:
-      "",
+    description: "",
     price: 190,
     image: [p_img46],
     category: "Women",
