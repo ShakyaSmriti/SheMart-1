@@ -21,6 +21,12 @@ const ShopContextProvider = (props) => {
   const navigate = useNavigate();
 
   const addToCart = async (itemId, size) => {
+    if (!token) {
+      toast.error("Please login to add items to cart");
+      navigate("/login");
+      return;
+    }
+
     if (!size) {
       toast.error("Select Product Size");
       return;
@@ -32,7 +38,6 @@ const ShopContextProvider = (props) => {
       return;
     }
 
-    // Ensure cartItems exists before cloning
     let cartData = cartItems ? structuredClone(cartItems) : {};
 
     if (!cartData[itemId]) {
@@ -41,14 +46,13 @@ const ShopContextProvider = (props) => {
 
     cartData[itemId][size] = (cartData[itemId][size] || 0) + 1;
 
-    // Add product type based on whether it's a video or image
     if (!cartData[itemId].type) {
       cartData[itemId].type = productData.video ? "video" : "image";
     }
 
     setCartItems(cartData);
 
-    // adding addToCart api
+    // Call API to add item to cart
     if (token) {
       if (!backendUrl) {
         console.error("Backend URL is not defined");
@@ -56,11 +60,14 @@ const ShopContextProvider = (props) => {
       }
 
       try {
-        await axios.post(
-          `${backendUrl}/api/cart/add`, // Ensure correct URL formatting
+        const response = await axios.post(
+          `${backendUrl}/api/cart/add`,
           { itemId, size },
-          { headers: { token } } // Use standard Authorization header
+          { headers: { token } }
         );
+
+        // Show success message from backend
+        toast.success(response.data.message);
       } catch (error) {
         console.error("Error adding to cart:", error);
         const errorMessage =

@@ -1,7 +1,7 @@
 import validator from "validator";
-import bcrypt from "bcrypt"; // Fixed typo: "bycrpt" to "bcrypt"
+import bcrypt from "bcrypt"; 
 import jwt from "jsonwebtoken";
-import userModel from "../models/userModel.js"; // Ensure the path includes ".js"
+import userModel from "../models/userModel.js"; 
 
 const createToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET);
@@ -39,7 +39,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Router for user register
+// Route for user register
 const registerUser = async (req, res) => {
   try {
     const { name, email, password, confirmPassword, gender } = req.body;

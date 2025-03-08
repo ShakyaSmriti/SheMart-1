@@ -28,7 +28,6 @@ const Login = () => {
 
     try {
       if (currentState === "Sign Up") {
-        // Log the values being sent for debugging
         console.log("Registering user with:", {
           name,
           email,
@@ -43,7 +42,7 @@ const Login = () => {
           email,
           password,
           confirmPassword,
-          gender, // Ensure gender is sent correctly
+          gender,
         });
 
         if (response.data.success) {
@@ -54,7 +53,6 @@ const Login = () => {
           toast.error(response.data.message);
         }
       } else {
-        // For login, do not include gender
         const response = await axios.post(`${backendUrl}/api/user/login`, {
           email,
           password,
@@ -180,19 +178,22 @@ const Login = () => {
       )}
 
       {/* Footer Section */}
-      <div className="w-full flex justify-between text-sm mt-1">
-        <p className="cursor-pointer">Forgot your password?</p>
+      <div className="w-full flex justify-between  text-sm mt-1">
         {currentState === "Login" ? (
-          <p
-            onClick={() => setCurrentState("Sign Up")}
-            className="cursor-pointer"
-          >
-            Create account
-          </p>
+          <>
+            <p className="cursor-pointer">Forgot your password?</p>
+
+            <p
+              onClick={() => setCurrentState("Sign Up")}
+              className="cursor-pointer"
+            >
+              Create account
+            </p>
+          </>
         ) : (
           <p
             onClick={() => setCurrentState("Login")}
-            className="cursor-pointer"
+            className="cursor-pointer ml-auto "
           >
             Login Here
           </p>
