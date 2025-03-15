@@ -2,12 +2,12 @@ import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "../context/ShopContext";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { Link, NavLink } from "react-router-dom";
 
 const Login = () => {
   const [currentState, setCurrentState] = useState("Login");
   const { token, setToken, navigate, backendUrl } = useContext(ShopContext);
 
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,8 +28,8 @@ const Login = () => {
 
     try {
       if (currentState === "Sign Up") {
+        // Log the values being sent for debugging
         console.log("Registering user with:", {
-          name,
           email,
           password,
           confirmPassword,
@@ -38,11 +38,10 @@ const Login = () => {
 
         // Send the request to register the user
         const response = await axios.post(`${backendUrl}/api/user/register`, {
-          name,
           email,
           password,
           confirmPassword,
-          gender,
+          gender, // Ensure gender is sent correctly
         });
 
         if (response.data.success) {
@@ -53,6 +52,7 @@ const Login = () => {
           toast.error(response.data.message);
         }
       } else {
+        // For login, do not include gender
         const response = await axios.post(`${backendUrl}/api/user/login`, {
           email,
           password,
@@ -95,7 +95,7 @@ const Login = () => {
       </div>
 
       {/* Conditional Inputs */}
-      {currentState === "Login" ? null : (
+      {/* {currentState === "Login" ? null : (
         <input
           onChange={(e) => setName(e.target.value)}
           value={name}
@@ -104,7 +104,7 @@ const Login = () => {
           placeholder="Name"
           required
         />
-      )}
+      )} */}
 
       <input
         onChange={(e) => setEmail(e.target.value)}
@@ -181,7 +181,9 @@ const Login = () => {
       <div className="w-full flex justify-between  text-sm mt-1">
         {currentState === "Login" ? (
           <>
-            <p className="cursor-pointer">Forgot your password?</p>
+            <NavLink to="/forget-password">
+              <p className="cursor-pointer">Forgot your password?</p>
+            </NavLink>
 
             <p
               onClick={() => setCurrentState("Sign Up")}
