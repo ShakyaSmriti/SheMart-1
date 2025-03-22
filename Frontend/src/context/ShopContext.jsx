@@ -148,10 +148,10 @@ const ShopContextProvider = (props) => {
       }
 
       const response = await axios.post(
-        `${backendUrl}/api/cart/get`, // Ensure proper URL formatting
+        `${backendUrl}/api/cart/get`,
         {},
         {
-          headers: { token }, // Use Authorization header
+          headers: { token },
         }
       );
 

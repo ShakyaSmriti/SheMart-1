@@ -3,11 +3,11 @@ import { useState, useContext, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ShopContext } from "../context/ShopContext"; 
+import { ShopContext } from "../context/ShopContext"; // Ensure ShopContext exists
 
 export default function ForgetPassword() {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false); // Track API loading state
   const { backendUrl } = useContext(ShopContext);
 
   const handleSubmit = async (e) => {
@@ -15,25 +15,25 @@ export default function ForgetPassword() {
     setLoading(true); // Start loading before API call
     console.log("Email submitted:", email);
 
-    // try {
-    //   const response = await axios.post(
-    //     `${backendUrl}/api/user/forget-password`,
-    //     { email }
-    //   );
-    //   console.log("Response:", response.data);
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/user/forget-password`,
+        { email }
+      );
+      console.log("Response:", response.data);
 
-    //   if (response.data.success) {
-    //     toast.success("Password reset email sent!");
-    //     setEmail(""); // Clear input after success
-    //   } else {
-    //     toast.error(response.data.message);
-    //   }
-    // } catch (error) {
-    //   console.error("Forget Password Error:", error);
-    //   toast.error("An error occurred. Please try again.");
-    // } finally {
-    //   setLoading(false); // Stop loading after API call
-    // }
+      if (response.data.success) {
+        toast.success("Password reset email sent!");
+        setEmail(""); // Clear input after success
+      } else {
+        toast.error("User not found. Please try again.");
+      }
+    } catch (error) {
+      console.error("Forget Password Error:", error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setLoading(false); // Stop loading after API call
+    }
   };
 
   return (

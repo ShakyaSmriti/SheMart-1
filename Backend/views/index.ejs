@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset Password</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      var status = <%- JSON.stringify(typeof status !== 'undefined' ? status : "") %>;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        if (status === "verified") {
+          setTimeout(() => {
+            Swal.fire({
+              title: "✅ Password Reset Completed!",
+              text: "Your password has been successfully reset.",
+              icon: "success",
+              confirmButtonText: "OK"
+            }).then((result) => {
+              if (result.isConfirmed) {
+                window.location.href = "http://localhost:5173/login";
+              }
+            });
+          }, 500);
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div class="flex items-center justify-center min-h-screen bg-gray-100">
+      <div class="w-96 p-6 bg-white rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold text-center mb-4">
+          Reset Password —
+        </h2>
+        <form action="" method="POST" class="space-y-4">
+          <input
+            type="password"
+            name="password"
+            placeholder="New Password"
+            class="w-full p-3 border border-gray-800 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-600"
+            required
+          />
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            class="w-full p-3 border border-gray-800 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-600"
+            required
+          />
+          <button
+            type="submit"
+            class="w-full bg-black text-white p-3 rounded-md hover:bg-gray-800 transition"
+          >
+            Reset
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
