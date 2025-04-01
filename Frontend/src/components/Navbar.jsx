@@ -76,6 +76,12 @@ const Navbar = () => {
                 >
                   Orders
                 </p>
+                <p
+                  onClick={() => navigate("/wishlist")}
+                  className="cursor-pointer hover:text-black"
+                >
+                  WishList
+                </p>
                 <p onClick={logout} className="cursor-pointer hover:text-black">
                   Logout
                 </p>

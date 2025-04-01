@@ -17,16 +17,16 @@ const loginUser = async (req, res) => {
     const user = await userModel.findOne({ email });
     if (!user) {
       return res
-        .status(200) // Still return 200 to avoid "400 Bad Request" from frontend
-        .json({ success: false, message: "Invalid Email or Password" });
+        .status(200)
+        .json({ success: false, message: "Invalid credentials" });
     }
 
     // Validate password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res
-        .status(200) // Same here
-        .json({ success: false, message: "Invalid credentials" });
+        .status(200)
+        .json({ success: false, message: "Invalid email or password" });
     }
 
     // Generate JWT token
@@ -40,13 +40,10 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Route for user register
+// Router for user register
 const registerUser = async (req, res) => {
   try {
     const { email, password, confirmPassword, gender } = req.body;
-    console.log(req.body);
-
-    // console.log(req.body);
 
     // Check if user already exists
     const exists = await userModel.findOne({ email });
@@ -113,7 +110,6 @@ const registerUser = async (req, res) => {
 
 // Router for admin login
 const adminLogin = async (req, res) => {
-  // Implement admin login functionality
   try {
     const { email, password } = req.body;
 
@@ -141,6 +137,17 @@ const adminLogin = async (req, res) => {
   }
 };
 
+// Router for display all users
+const allUsers = async (req, res) => {
+  try {
+    const users = await userModel.find({});
+    return res.json({ success: true, users });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Router for getting forget password mail and sending mail
 const forgetPasswordMail = async (req, res) => {
   const { email } = req.body;
@@ -161,8 +168,8 @@ const forgetPasswordMail = async (req, res) => {
     var transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "shakyasmriti368@gmail.com",
-        pass: "uqjr khpg yxya lsfv",
+        user: "kamal.bamma05@gmail.com",
+        pass: "fllj awkn iyes dnkl",
       },
     });
 
@@ -181,7 +188,7 @@ const forgetPasswordMail = async (req, res) => {
       }
     });
 
-    // console.log("Reset Link:", link);
+    console.log("Reset Link:", link);
 
     return res.json({ success: true, message: "Password reset email sent!" });
   } catch (error) {
@@ -193,7 +200,7 @@ const forgetPasswordMail = async (req, res) => {
 // Router for getting reset password page
 const resetpasswordget = async (req, res) => {
   const { id, token } = req.params;
-  // console.log(req.params);
+  console.log(req.params);
 
   const oldUser = await userModel.findOne({ _id: id });
   if (!oldUser) {
@@ -246,10 +253,32 @@ const resetpassword = async (req, res) => {
       }
     );
 
-    // res.render("index", { email: verify.email, status: "verified" });
+    res.render("index", { email: verify.email, status: "verified" });
   } catch (error) {
     console.log(error);
     res.json({ status: "Something Went Wrong" });
+  }
+};
+
+// Delete user
+const deleteUser = async (req, res) => {
+  const { id } = req.params;
+  console.log(req.params);
+
+  if (!id) {
+    return res
+      .status(400)
+      .json({ success: false, message: "User ID is required" });
+  }
+
+  try {
+    await userModel.findByIdAndDelete(id);
+    res
+      .status(200)
+      .json({ success: true, message: "User deleted successfully." });
+  } catch (error) {
+    console.error("Delete User Error:", error.message);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -257,7 +286,9 @@ export {
   loginUser,
   registerUser,
   adminLogin,
+  allUsers,
   forgetPasswordMail,
   resetpasswordget,
   resetpassword,
+  deleteUser,
 };

@@ -84,6 +84,99 @@ const addProduct = async (req, res) => {
   }
 };
 
+//*function for update product
+const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      description,
+      price,
+      category,
+      subCategory,
+      sizes,
+      bestseller,
+    } = req.body;
+
+    console.log("Product Id:", req.params);
+    console.log("Request Body:", req.body);
+
+    // Fetch the existing product
+    const product = await productModel.findById(id);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    const updateFields = {};
+
+    if (name) updateFields.name = name;
+    if (description) updateFields.description = description;
+    if (price) updateFields.price = Number(price);
+    if (category) updateFields.category = category;
+    if (subCategory) updateFields.subCategory = subCategory;
+    if (sizes) updateFields.sizes = JSON.parse(sizes);
+    if (bestseller !== undefined)
+      updateFields.bestseller = bestseller === "true";
+
+    // Handle image and video uploads if files are provided
+    const imageFile = req.files?.image?.[0];
+    const videoFile = req.files?.video?.[0];
+
+    const images = [imageFile].filter((item) => item !== undefined);
+    const videos = [videoFile].filter((item) => item !== undefined);
+
+    if (images.length > 0) {
+      const uploadedImages = await Promise.all(
+        images.map(async (item) => {
+          let result = await cloudinary.uploader.upload(item.path, {
+            folder: "products/images",
+            resource_type: "image",
+          });
+          return result.secure_url;
+        })
+      );
+      updateFields.image = [...(product.image || []), ...uploadedImages];
+    }
+
+    if (videos.length > 0) {
+      const uploadedVideos = await Promise.all(
+        videos.map(async (item) => {
+          let result = await cloudinary.uploader.upload(item.path, {
+            folder: "products/videos",
+            resource_type: "video",
+          });
+          return result.secure_url;
+        })
+      );
+      updateFields.video = [...(product.video || []), ...uploadedVideos];
+    }
+
+    // Update product only with modified fields
+    const updatedProduct = await productModel.findByIdAndUpdate(
+      id,
+      updateFields,
+      {
+        new: true,
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Product updated successfully.",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    console.error("Error updating product:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "An unexpected server error occurred.",
+      error: error.message,
+    });
+  }
+};
+
 //function for list Product
 const listProduct = async (req, res) => {
   try {
@@ -126,4 +219,4 @@ const singleProduct = async (req, res) => {
   }
 };
 
-export { listProduct, addProduct, removeProduct, singleProduct };
+export { listProduct, addProduct, removeProduct, singleProduct, updateProduct };

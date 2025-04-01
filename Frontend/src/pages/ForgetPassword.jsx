@@ -3,7 +3,7 @@ import { useState, useContext, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ShopContext } from "../context/ShopContext"; // Ensure ShopContext exists
+import { ShopContext } from "../context/ShopContext"; 
 
 export default function ForgetPassword() {
   const [email, setEmail] = useState("");

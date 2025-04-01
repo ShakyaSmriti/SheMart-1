@@ -3,6 +3,7 @@ import { assets, products } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import ProductItem from "../components/ProductItem";
+import { Heart } from "lucide-react";
 
 const Collection = () => {
   const { products, search, showSearch } = useContext(ShopContext);
@@ -242,14 +243,20 @@ const Collection = () => {
         {/* Map Products */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 gap-y-6">
           {filterProducts.map((item, index) => (
-            <ProductItem
-              key={index}
-              name={item.name}
-              id={item._id}
-              price={item.price}
-              image={item.image}
-              video={item.video}
-            />
+            <div key={index} className="relative">
+              <ProductItem
+                name={item.name}
+                id={item._id}
+                price={item.price}
+                image={item.image}
+                video={item.video}
+              />
+              {/* Heart Icon Positioned at the Top Right */}
+              <Heart
+                className="absolute bottom-2 right-2 text-gray-500 hover:text-red-500 cursor-pointer"
+                size={20} // Adjust size as needed
+              />
+            </div>
           ))}
         </div>
       </div>

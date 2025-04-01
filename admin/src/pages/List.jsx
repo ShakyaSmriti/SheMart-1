@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { backendUrl, currency } from "../App";
 import { toast } from "react-toastify";
+import { FaRegEdit } from "react-icons/fa";
+import { MdOutlineDelete } from "react-icons/md";
+import { NavLink } from "react-router-dom";
 
 const List = ({ token }) => {
   const [list, setList] = useState([]);
@@ -11,86 +14,97 @@ const List = ({ token }) => {
     try {
       const response = await axios.get(`${backendUrl}/api/product/list`);
 
-      // Only update the state if the response is valid
+      console.log(response.data);
       if (response.data.success) {
-        setList(response.data.products);
+        setList(response.data.products || []);
       } else {
-        toast.error(response.data.message);
+        toast.error(response.data.message || "Failed to fetch products.");
       }
     } catch (error) {
-      console.log(error);
-      toast.error(error.message);
+      console.error("Fetch Error:", error);
+      toast.error(
+        error?.message || "An error occurred while fetching the list."
+      );
     }
   };
 
   // Remove a product
   const removeProduct = async (id) => {
     try {
-      // Ensure token is available in the headers
-      const token = localStorage.getItem("token"); // Get token from localStorage, if needed
+      const authToken = token || localStorage.getItem("token"); // Use prop token or fallback to localStorage
 
-      // Optimistically update the state
+      if (!authToken) {
+        toast.error("Authentication token missing.");
+        return;
+      }
+
+      // Optimistically update UI before making API call
       setList((prevList) => prevList.filter((item) => item._id !== id));
 
       const response = await axios.post(
         `${backendUrl}/api/product/remove`,
         { id },
-        { headers: { token } } // Pass token in the Authorization header
+        { headers: { token } } // Ensure correct header format
       );
 
       if (response.data.success) {
         toast.success(response.data.message);
-        // No need to call fetchList() here since we already updated the state
       } else {
-        toast.error(response.data.message); // Show error message from the server
-        // If the deletion failed, you might want to re-fetch the list to restore the removed item
-        fetchList();
+        toast.error(response.data.message || "Failed to remove product.");
+        fetchList(); // Restore the list if deletion failed
       }
     } catch (error) {
-      console.log(error);
+      console.error("Delete Error:", error);
       toast.error(
-        error.message || "An error occurred while removing the product"
-      ); // Display error message
-      // If there's an error, you might want to re-fetch the list to restore the removed item
-      fetchList();
+        error?.message || "An error occurred while removing the product."
+      );
+      fetchList(); // Restore the list in case of an error
     }
   };
 
   useEffect(() => {
-    fetchList(); // Call fetchList on initial render
+    fetchList();
   }, []);
 
   return (
     <>
-      <p className="mb-2">All Products List</p>
+      <h3 className="font-700 text-lg mb-2">All Products List</h3>
       <div className="flex flex-col gap-2">
         {/* -----------List Table Title------------ */}
-        <div className="hidden md:grid grid-cols-[1fr_3fr_1fr_1fr_1fr] items-center py-1 px-2 bg-gray-100 text-sm">
+        <div className="hidden md:grid grid-cols-[1fr_3fr_1fr_1fr_1fr_1fr] items-center p-2 bg-gray-100 text-sm">
           <b>Image</b>
           <b>Name</b>
           <b>Category</b>
           <b>Price</b>
-          <b className="text-center">Action</b>
+          <b>Edit</b>
+          <b>Delete</b>
         </div>
 
         {/* --------Product List------- */}
-        {Array.isArray(list) && list.length > 0 ? (
-          list.map((item, index) => (
+        {list.length > 0 ? (
+          list.map((item) => (
             <div
-              key={index}
-              className="grid grid-cols-[1fr_3fr_1fr] md:grid-cols-[1fr_3fr_1fr_1fr_1fr] items-center gap-2 py-1 px-2 border text-sm"
+              key={item._id}
+              className="grid grid-cols-[1fr_3fr_1fr] md:grid-cols-[1fr_3fr_1fr_1fr_1fr_1fr] items-center gap-2 p-2 border-2 border-gray-200  text-sm"
             >
               {/* Conditionally render Image or Video based on available media */}
-              {item.image ? (
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-12 h-12 object-cover"
+              {item.video?.length > 0 ? (
+                <video
+                  className="w-16 sm:w-12"
+                  src={item.video[0]}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
                 />
-              ) : item.video ? (
-                <video src={item.video} className="w-12 h-12 object-cover" />
+              ) : item.image?.length > 0 ? (
+                <img
+                  className="w-16 sm:w-12"
+                  src={item.image[0]}
+                  alt={item.name}
+                />
               ) : (
-                <p>No media available</p> // In case no image or video is available
+                <p>No media available</p>
               )}
 
               <p>{item.name}</p>
@@ -99,11 +113,17 @@ const List = ({ token }) => {
                 {currency}
                 {item.price}
               </p>
+
+              <p className="text-right md:text-center cursor-pointer text-lg">
+                <NavLink to={`/update/${item._id}`}>
+                  <FaRegEdit />
+                </NavLink>
+              </p>
               <p
                 onClick={() => removeProduct(item._id)}
                 className="text-right md:text-center cursor-pointer text-lg"
               >
-                X
+                <MdOutlineDelete />
               </p>
             </div>
           ))
