@@ -142,6 +142,7 @@ const ShopContextProvider = (props) => {
   };
 
   const getUserCart = async (token) => {
+    // console.log(token);
     try {
       if (!token) {
         throw new Error("No authentication token provided");
