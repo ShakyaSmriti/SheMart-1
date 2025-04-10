@@ -1,5 +1,4 @@
 import { createContext, useEffect, useState } from "react";
-// import { products } from "../assets/assets";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -15,6 +14,7 @@ const ShopContextProvider = (props) => {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState({});
+  const [wishlistItems, setWishlistItems] = useState({});
   const [cartData, setCartData] = useState({});
   const [products, setProducts] = useState([]);
   const [token, setToken] = useState("");
@@ -148,12 +148,14 @@ const ShopContextProvider = (props) => {
       }
 
       const response = await axios.post(
-        `${backendUrl}/api/cart/get`,
+        `${backendUrl}/api/cart/get`, // Ensure proper URL formatting
         {},
         {
-          headers: { token },
+          headers: { token }, // Use Authorization header
         }
       );
+
+      console.log(response.data.cartData); // Log the cart data
 
       if (response.data.success) {
         setCartItems(response.data.cartData);
@@ -169,14 +171,105 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  const addToWishlist = async (productId) => {
+    if (!token) {
+      toast.error("Please login to add items to wishlist");
+      navigate("/login");
+      return;
+    }
+
+    const productData = products.find((product) => product._id === productId);
+    if (!productData) {
+      toast.error("Product not found");
+      return;
+    }
+
+    let wishlistData = wishlistItems ? structuredClone(wishlistItems) : {};
+
+    if (!wishlistData[productId]) {
+      wishlistData[productId] = {
+        type: productData.video ? "video" : "image",
+        addedAt: new Date().toISOString(), // Optional metadata
+      };
+    }
+
+    setWishlistItems(wishlistData);
+
+    if (!backendUrl) {
+      console.error("Backend URL is not defined");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/wishlist/add`,
+        { productId },
+        { headers: { token } }
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+
+        // Toggle wishlist items
+        setWishlistItems((prev) => {
+          const updatedWishlist = { ...prev };
+          if (updatedWishlist[productId]) {
+            delete updatedWishlist[productId];
+          } else {
+            updatedWishlist[productId] = {
+              type: productData.video ? "video" : "image",
+              addedAt: new Date().toISOString(),
+            };
+          }
+          return updatedWishlist;
+        });
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+      toast.error(error.response?.data?.message || "Failed to add to wishlist");
+    }
+  };
+
+  const getUserWishlist = async (token) => {
+    try {
+      if (!token) {
+        throw new Error("No authentication token provided");
+      }
+
+      const response = await axios.get(`${backendUrl}/api/wishlist/get`, {
+        headers: { token },
+      });
+
+      if (response.data.success) {
+        setWishlistItems(response.data.wishlistData);
+      } else {
+        throw new Error(
+          response.data.message || "Failed to fetch wishlist data"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching wishlist:",
+        error.response?.data || error.message
+      );
+      toast.error(
+        error.response?.data?.message || "Error fetching wishlist data"
+      );
+    }
+  };
+
   useEffect(() => {
     getProductsData();
   }, []);
 
   useEffect(() => {
-    if (!token && localStorage.getItem("token")) {
-      setToken(localStorage.getItem("token"));
-      getUserCart(localStorage.getItem("token"));
+    const savedToken = localStorage.getItem("token");
+    if (savedToken && !token) {
+      setToken(savedToken);
+      getUserCart(savedToken); // already in your code
+      getUserWishlist(savedToken); // ADD THIS line
     }
   }, []);
 
@@ -198,8 +291,12 @@ const ShopContextProvider = (props) => {
     getCartAmount,
     navigate,
     backendUrl,
+    wishlistItems,
+    setWishlistItems,
     setToken,
     token,
+    addToWishlist,
+    getUserWishlist,
   };
 
   return (

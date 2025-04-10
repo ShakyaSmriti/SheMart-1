@@ -7,6 +7,13 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     gender: { type: String, required: true, enum: ["Male", "Female", "Other"] },
     cartData: { type: Object, default: {} },
+    wishList: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "product",
+        default: {},
+      },
+    ],
   },
   { minimize: false }
 );

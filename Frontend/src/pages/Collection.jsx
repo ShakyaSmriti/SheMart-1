@@ -252,10 +252,6 @@ const Collection = () => {
                 video={item.video}
               />
               {/* Heart Icon Positioned at the Top Right */}
-              <Heart
-                className="absolute bottom-2 right-2 text-gray-500 hover:text-red-500 cursor-pointer"
-                size={20} // Adjust size as needed
-              />
             </div>
           ))}
         </div>

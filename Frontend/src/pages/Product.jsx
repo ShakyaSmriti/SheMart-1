@@ -3,17 +3,33 @@ import { useParams } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
 import RelatedProducts from "../components/RelatedProducts";
+import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 
 const Product = () => {
   const { productId } = useParams();
-  const { products, currency, addToCart, cartItems, setCartData } =
-    useContext(ShopContext);
+
+  console.log("Product ID:", productId);
+  const {
+    products,
+    currency,
+    addToCart,
+    cartItems,
+    addToWishlist,
+    wishlistItems,
+    setCartData,
+  } = useContext(ShopContext);
+
   const [productData, setProductData] = useState(false);
   const [media, setMedia] = useState(""); // Updated to handle both image and video
   const [size, setSize] = useState("");
+  const [localWishlist, setLocalWishlist] = useState({});
+
+  const isInWishlist = localWishlist?.[productId];
+  const Icon = isInWishlist ? MdFavorite : MdFavoriteBorder;
 
   const fetchProductData = () => {
     const foundProduct = products.find((item) => item._id === productId);
+    console.log(foundProduct);
 
     if (foundProduct) {
       setProductData(foundProduct);
@@ -45,6 +61,10 @@ const Product = () => {
     }
     setCartData(tempData);
   }, [cartItems]);
+
+  useEffect(() => {
+    setLocalWishlist(wishlistItems);
+  }, [wishlistItems]);
 
   useEffect(() => {
     fetchProductData();
@@ -101,8 +121,55 @@ const Product = () => {
         </div>
 
         {/* ------ Product Info ------- */}
-        <div className="flex-1">
-          <h1 className="font-medium text-2xl mt-2">{productData.name}</h1>
+        <div className="flex-1  ">
+          <div className="flex items-center gap-40 mt-2">
+            <h1 className="font-medium text-2xl">{productData.name}</h1>
+
+            {/* {isInWishlist ? (
+              <MdFavorite
+                className="cursor-pointer transition-colors duration-200"
+                size={25}
+                onClick={() => {
+                  addToWishlist(productId);
+                  setLocalWishlist((prev) => {
+                    const updated = { ...prev };
+                    delete updated[productId]; // Remove from wishlist
+                    return updated;
+                  });
+                }}
+              />
+            ) : (
+              <MdFavoriteBorder
+                className=" cursor-pointer transition-colors duration-200"
+                size={25}
+                onClick={() => {
+                  addToWishlist(productId);
+                  setLocalWishlist((prev) => ({
+                    ...prev,
+                    [productId]: true, // Add to wishlist
+                  }));
+                }}
+              />
+            )} */}
+
+            <Icon
+              className="cursor-pointer transition-colors duration-200"
+              size={25}
+              onClick={() => {
+                addToWishlist(productId);
+                setLocalWishlist((prev) => {
+                  const updated = { ...prev };
+                  if (isInWishlist) {
+                    delete updated[productId]; // Remove
+                  } else {
+                    updated[productId] = true; // Add
+                  }
+                  return updated;
+                });
+              }}
+            />
+          </div>
+
           <div className="flex items-center gap-1 mt-2">
             <img src={assets.star_icon} alt="Star" className="w-3.5" />
             <img src={assets.star_icon} alt="Star" className="w-3.5" />
