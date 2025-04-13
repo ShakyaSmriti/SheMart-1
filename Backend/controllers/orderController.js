@@ -54,7 +54,6 @@ const placeOrder = async (req, res) => {
 };
 
 // Placing orders using Khalti method
-
 const placeOrderKhalti = async (req, res) => {};
 
 // All orders data fro admin panel
@@ -96,4 +95,33 @@ const updateStatus = async (req, res) => {
   }
 };
 
-export { placeOrder, placeOrderKhalti, allOrders, userOrders, updateStatus };
+const deleteOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    console.log(`orderId:`, orderId);
+
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Order ID not provided" });
+    }
+
+    await orderModel.findByIdAndDelete(orderId);
+    return res.json({
+      success: true,
+      message: "Order deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export {
+  placeOrder,
+  placeOrderKhalti,
+  allOrders,
+  userOrders,
+  updateStatus,
+  deleteOrder,
+};

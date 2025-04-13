@@ -43,7 +43,7 @@ const loginUser = async (req, res) => {
 // Router for user register
 const registerUser = async (req, res) => {
   try {
-    const { email, password, confirmPassword, gender } = req.body;
+    const { name, email, password, confirmPassword, gender } = req.body;
 
     // Check if user already exists
     const exists = await userModel.findOne({ email });
@@ -88,6 +88,7 @@ const registerUser = async (req, res) => {
     // Proceed with registration if validations pass
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new userModel({
+      name,
       email,
       password: hashedPassword,
       gender,

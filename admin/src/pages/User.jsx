@@ -56,7 +56,7 @@ const User = ({ token }) => {
       <h3 className="font-700 text-lg">Users</h3>
 
       <div className="flex flex-col gap-2">
-        <div className="hidden md:grid grid-cols-[1fr_2fr_2fr_1fr_1fr] items-center p-2 bg-gray-100 text-sm">
+        <div className="hidden md:grid grid-cols-[1.5fr_2fr_2fr_1fr_1fr] items-center p-2 bg-gray-100 text-sm">
           <b>Name</b>
           <b>Id</b>
           <b>Email</b>
@@ -68,7 +68,7 @@ const User = ({ token }) => {
           users.map((user, index) => (
             <div
               key={index}
-              className="grid md:grid-cols-[1fr_2fr_2fr_1fr_1fr] gap-3 border-2 border-gray-200 p-4 md:p-2.5 text-xs sm:text-sm text-gray-500"
+              className="grid md:grid-cols-[1.5fr_2fr_2fr_1fr_1fr] gap-3 border-2 border-gray-200 p-4 md:p-2.5 text-xs sm:text-sm text-gray-500"
             >
               <p>{user.name}</p>
               <p>{user._id}</p>

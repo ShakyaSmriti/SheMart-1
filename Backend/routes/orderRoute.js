@@ -15,6 +15,7 @@ const orderRouter = express.Router();
 // Amdmin features
 orderRouter.post("/list", adminAuth, allOrders);
 orderRouter.post("/status", adminAuth, updateStatus);
+orderRouter.post("/delete", adminAuth, updateStatus);
 
 // Payment features
 orderRouter.post("/place", authUser, placeOrder);

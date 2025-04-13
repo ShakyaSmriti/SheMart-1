@@ -7,7 +7,7 @@ const Order = ({ token }) => {
   const [orders, setOrders] = useState([]);
 
   const fetchAllOrders = async () => {
-    if (!token) return null;
+    if (!token) return;
 
     try {
       const response = await axios.post(
@@ -17,7 +17,6 @@ const Order = ({ token }) => {
           headers: { token },
         }
       );
-      // console.log(response.data);
 
       if (response.data.success) {
         setOrders(response.data.orders || []);
@@ -32,7 +31,7 @@ const Order = ({ token }) => {
   };
 
   const statusHandler = async (event, orderId) => {
-    if (!token) return null;
+    if (!token) return;
 
     try {
       const response = await axios.post(
@@ -65,16 +64,16 @@ const Order = ({ token }) => {
       <h3 className="font-700 text-lg">Orders</h3>
 
       <div>
-        {orders.map((order, index) => (
+        {orders.map((order) => (
           <div
-            key={index}
+            key={order._id}
             className="grid sm:grid-cols-[0.5fr_9fr_0.5fr] gap-3 border-2 border-gray-200 p-4 md:p-6 my-3 md:my-2 text-xs sm:text-sm text-gray-500"
           >
-            {/* Display first product's media (image/video) as a preview */}
+            {/* Preview media */}
             {order.items.length > 0 &&
               (order.items[0].video?.length > 0 ? (
                 <video
-                  className="w-20 sm:w-20 "
+                  className="w-20 sm:w-20"
                   src={order.items[0].video[0]}
                   autoPlay
                   loop
@@ -83,7 +82,7 @@ const Order = ({ token }) => {
                 />
               ) : order.items[0].image?.length > 0 ? (
                 <img
-                  className="w-20 sm:w-20 "
+                  className="w-20 sm:w-20"
                   src={order.items[0].image[0]}
                   alt={order.items[0].name}
                 />
@@ -91,7 +90,7 @@ const Order = ({ token }) => {
                 <p>No media available</p>
               ))}
 
-            <div className="grid lg:grid-cols-[4fr_4fr_3fr_2fr_3fr] items-start gap-8 ">
+            <div className="grid lg:grid-cols-[4fr_4fr_3fr_2fr_3fr] items-start gap-8">
               {/* Order Items */}
               <div>
                 {order.items.map((item, index) => (
@@ -103,7 +102,7 @@ const Order = ({ token }) => {
                     <p>
                       <span className="font-semibold">Size: </span>
                       {item.size}
-                    </p>{" "}
+                    </p>
                     <p>
                       <span className="font-semibold">Quantity: </span>
                       {item.quantity}
@@ -147,16 +146,17 @@ const Order = ({ token }) => {
                   {new Date(order.date).toLocaleString()}
                 </p>
               </div>
+
+              {/* Amount */}
               <p>
-                <span className="font-semibold ">{currency} </span>
-                {order.amount}
+                <span className="font-semibold">{currency}</span> {order.amount}
               </p>
 
               {/* Order Status Dropdown */}
               <select
                 onChange={(event) => statusHandler(event, order._id)}
                 value={order.status}
-                className="border  rounded-md p-1 text-sm w-full font-semibold"
+                className="border rounded-md p-1 text-sm w-full font-semibold"
               >
                 <option value="OrderPlaced">Order Placed</option>
                 <option value="Packing">Packing</option>

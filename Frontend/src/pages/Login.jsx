@@ -7,7 +7,7 @@ import { Link, NavLink } from "react-router-dom";
 const Login = () => {
   const [currentState, setCurrentState] = useState("Login");
   const { token, setToken, navigate, backendUrl } = useContext(ShopContext);
-
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -29,15 +29,17 @@ const Login = () => {
     try {
       if (currentState === "Sign Up") {
         // Log the values being sent for debugging
-        console.log("Registering user with:", {
-          email,
-          password,
-          confirmPassword,
-          gender,
-        });
+        // console.log("Registering user with:", {
+        //   name,
+        //   email,
+        //   password,
+        //   confirmPassword,
+        //   gender,
+        // });
 
         // Send the request to register the user
         const response = await axios.post(`${backendUrl}/api/user/register`, {
+          name,
           email,
           password,
           confirmPassword,
@@ -95,7 +97,7 @@ const Login = () => {
       </div>
 
       {/* Conditional Inputs */}
-      {/* {currentState === "Login" ? null : (
+      {currentState === "Login" ? null : (
         <input
           onChange={(e) => setName(e.target.value)}
           value={name}
@@ -104,7 +106,7 @@ const Login = () => {
           placeholder="Name"
           required
         />
-      )} */}
+      )}
 
       <input
         onChange={(e) => setEmail(e.target.value)}
