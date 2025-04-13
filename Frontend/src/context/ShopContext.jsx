@@ -20,6 +20,7 @@ const ShopContextProvider = (props) => {
   const [token, setToken] = useState("");
   const navigate = useNavigate();
 
+  // funtion to add items to cart
   const addToCart = async (itemId, size) => {
     if (!token) {
       toast.error("Please login to add items to cart");
@@ -77,6 +78,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // function to get the total count of items in the cart
   const getCartCount = () => {
     let totalCount = 0;
 
@@ -92,6 +94,7 @@ const ShopContextProvider = (props) => {
     return totalCount;
   };
 
+  // function to update the quantity of items in the cart
   const updateQuantity = async (itemId, size, quantity) => {
     let cartData = structuredClone(cartItems);
     cartData[itemId][size] = quantity;
@@ -112,6 +115,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // function to get the total amount of items in the cart
   const getCartAmount = () => {
     let totalAmount = 0;
     for (const items in cartItems) {
@@ -127,6 +131,7 @@ const ShopContextProvider = (props) => {
     return totalAmount;
   };
 
+  // function to get the products data from the backend
   const getProductsData = async () => {
     try {
       const response = await axios.get(backendUrl + "/api/product/list");
@@ -141,6 +146,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // function to get the user cart data from the backend
   const getUserCart = async (token) => {
     // console.log(token);
     try {
@@ -172,6 +178,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // function to add items to the wishlist
   const addToWishlist = async (productId) => {
     if (!token) {
       toast.error("Please login to add items to wishlist");
@@ -233,6 +240,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // function to get the user wishlist data from the backend
   const getUserWishlist = async (token) => {
     try {
       if (!token) {
@@ -261,10 +269,12 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // use effect to get the products data when the component mounts
   useEffect(() => {
     getProductsData();
   }, []);
 
+  // use effect to get the user cart data when the component mounts
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     if (savedToken && !token) {
