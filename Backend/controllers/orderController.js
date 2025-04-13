@@ -3,6 +3,7 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 
+// function to place an order using COD method
 const placeOrder = async (req, res) => {
   try {
     const { items, amount, address } = req.body;
@@ -23,7 +24,7 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    console.log("Order data:", req.body);
+    // console.log("Order data:", req.body);
 
     const orderData = {
       userId,
