@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useEffect } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { backendUrl } from "../App";
@@ -24,35 +26,23 @@ const User = ({ token }) => {
     }
   };
 
-  const removeUser = async (id) => {
+  const handleDeleteUser = async (userId) => {
     try {
-      const authToken = token || localStorage.getItem("token"); // Use prop token or fallback to localStorage
-
-      if (!authToken) {
-        toast.error("Authentication token missing.");
-        return;
-      }
-
-      // Optimistically update UI before making API call
-      setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
-
       const response = await axios.post(
-        `${backendUrl}/api/user/remove`,
-        { id },
-        { headers: { token } }
+        `${backendUrl}/api/user/remove/${userId}`,
+        {
+          headers: { token },
+        }
       );
-
-      // Check if the deletion was successful
       if (response.data.success) {
-        toast.success(response.data.message || "User deleted successfully!");
-        // Update the user list after deletion
-        setUsers((prevUsers) => prevUsers.filter((user) => user._id !== id));
+        toast.success("User deleted successfully.");
+        fetchAllUsers(); // Refresh the user list after deletion
       } else {
-        toast.error(response.data.message || "Failed to remove user.");
+        toast.error(response.data.message || "Failed to delete user.");
       }
     } catch (error) {
       toast.error(
-        error?.message || "An error occurred while removing the user."
+        error?.message || "An error occurred while deleting the user."
       );
     }
   };
@@ -64,6 +54,7 @@ const User = ({ token }) => {
   return (
     <div>
       <h3 className="font-700 text-lg">Users</h3>
+
       <div className="flex flex-col gap-2">
         <div className="hidden md:grid grid-cols-[1fr_2fr_2fr_1fr_1fr] items-center p-2 bg-gray-100 text-sm">
           <b>Name</b>
@@ -85,11 +76,9 @@ const User = ({ token }) => {
               <p>{user.gender}</p>
               <p>
                 <MdOutlineDelete
-                  className="cursor-pointer"
                   size={20}
-                  onClick={() => {
-                    removeUser(user._id); // Call removeUser when delete icon is clicked
-                  }}
+                  className=" cursor-pointer"
+                  onClick={() => handleDeleteUser(user._id)}
                 />
               </p>
             </div>

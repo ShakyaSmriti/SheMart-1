@@ -17,7 +17,7 @@ userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
 userRouter.post("/admin", adminLogin);
 userRouter.get("/list", allUsers);
-userRouter.delete("/remove", deleteUser);
+userRouter.post("/remove/:id", deleteUser);
 
 // forget password routes
 userRouter.post("/forget-password", forgetPasswordMail);

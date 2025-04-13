@@ -148,6 +148,23 @@ const allUsers = async (req, res) => {
   }
 };
 
+// Router for deleting user
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userModel.findByIdAndDelete(id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    return res.json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Delete User Error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Router for getting forget password mail and sending mail
 const forgetPasswordMail = async (req, res) => {
   const { email } = req.body;
@@ -257,28 +274,6 @@ const resetpassword = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.json({ status: "Something Went Wrong" });
-  }
-};
-
-// Delete user
-const deleteUser = async (req, res) => {
-  const { id } = req.params;
-  console.log(req.params);
-
-  if (!id) {
-    return res
-      .status(400)
-      .json({ success: false, message: "User ID is required" });
-  }
-
-  try {
-    await userModel.findByIdAndDelete(id);
-    res
-      .status(200)
-      .json({ success: true, message: "User deleted successfully." });
-  } catch (error) {
-    console.error("Delete User Error:", error.message);
-    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
