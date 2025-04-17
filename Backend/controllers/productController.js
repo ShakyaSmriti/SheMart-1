@@ -60,7 +60,7 @@ const addProduct = async (req, res) => {
       category,
       price: Number(price),
       subCategory,
-      bestseller: bestseller === "true" ? true : false,
+      bestseller: bestseller === "true" ? true : undefined,
       sizes: JSON.parse(sizes),
       image: imagesUrl,
       video: videoUrl,
