@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Title from "./../components/Title";
 import { assets } from "../assets/assets";
 import { toast } from "react-toastify";
+import emailjs from "@emailjs/browser";
 
 const Contact = () => {
   const [name, setName] = useState("");
@@ -16,16 +17,25 @@ const Contact = () => {
       return;
     }
 
-    toast.success("Message sent successfully!");
-    setName("");
-    setEmail("");
-    setMessage("");
+    const formData = {
+      from_name: name,
+      from_email: email,
+      message: message,
+    };
 
-    // Scroll to top to show toast clearly
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    emailjs
+      .send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", formData, "YOUR_USER_ID")
+      .then(
+        (result) => {
+          toast.success("Message sent successfully!");
+          setName("");
+          setEmail("");
+          setMessage("");
+        },
+        (error) => {
+          toast.error("Error sending message: " + error.text);
+        }
+      );
   };
 
   return (
@@ -37,7 +47,7 @@ const Contact = () => {
 
       {/* Contact Content */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-      
+        {/* Left side: Image */}
         <div className="w-full">
           <img
             src={assets.contact_img}
