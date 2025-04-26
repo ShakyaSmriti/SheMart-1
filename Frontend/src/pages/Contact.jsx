@@ -8,6 +8,7 @@ const Contact = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false); // Add loading state
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,23 +18,33 @@ const Contact = () => {
       return;
     }
 
-    const formData = {
-      from_name: name,
-      from_email: email,
+    setLoading(true); // Start loading
+
+    const templateParams = {
+      name: name,
+      email: email,
       message: message,
     };
 
     emailjs
-      .send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", formData, "YOUR_USER_ID")
+      .send(
+        "service_vsqps9p", // Replace with your service ID
+        "template_4yodqjn", // Replace with your template ID
+        templateParams,
+        "PNINLqvXOk3BhQW4U" // Replace with your user ID
+      )
       .then(
-        (result) => {
+        (response) => {
           toast.success("Message sent successfully!");
           setName("");
           setEmail("");
           setMessage("");
+          setLoading(false); // Stop loading
         },
         (error) => {
-          toast.error("Error sending message: " + error.text);
+          toast.error("Failed to send message. Please try again later.");
+          console.error("Error sending email:", error);
+          setLoading(false); // Stop loading on error too
         }
       );
   };
@@ -107,11 +118,23 @@ const Contact = () => {
               rows="5"
               required
             ></textarea>
+
+            {/* Button with spinner */}
             <button
               type="submit"
-              className="bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition duration-300"
+              disabled={loading}
+              className={`bg-black text-white py-3 rounded-lg transition duration-300 flex items-center justify-center ${
+                loading ? "opacity-70 cursor-not-allowed" : "hover:bg-gray-800"
+              }`}
             >
-              Send Message
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Sending...
+                </div>
+              ) : (
+                "Send Message"
+              )}
             </button>
           </form>
         </div>
