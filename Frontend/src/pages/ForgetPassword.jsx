@@ -1,26 +1,41 @@
 import axios from "axios";
-import { useState, useContext, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useState, useContext } from "react";
+import { NavLink } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ShopContext } from "../context/ShopContext"; 
+import { ShopContext } from "../context/ShopContext";
 
 export default function ForgetPassword() {
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState(""); // Track email error
   const [loading, setLoading] = useState(false); // Track API loading state
   const { backendUrl } = useContext(ShopContext);
 
+  const validateForm = () => {
+    let valid = true;
+    if (!email.trim()) {
+      setEmailError("Email is required.");
+      valid = false;
+    } else {
+      setEmailError("");
+    }
+    return valid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return; // Stop if validation fails
+    }
+
     setLoading(true); // Start loading before API call
-    console.log("Email submitted:", email);
 
     try {
       const response = await axios.post(
         `${backendUrl}/api/user/forget-password`,
         { email }
       );
-      console.log("Response:", response.data);
 
       if (response.data.success) {
         toast.success("Password reset email sent!");
@@ -37,38 +52,46 @@ export default function ForgetPassword() {
   };
 
   return (
-    <>
-      <div className="flex items-center justify-center min-h-96 bg-white ">
-        <div className="w-96 p-6 border rounded-lg shadow-md">
-          <h3 className="text-2xl prata-regular text-center mb-4">
-            Forget Password —
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="flex items-center justify-center min-h-96 bg-white">
+      <div className="w-96 p-6 border rounded-lg shadow-md">
+        <h3 className="text-2xl prata-regular text-center mb-4">
+          Forget Password —
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-2">
+          <div className="flex flex-col">
             <input
               type="email"
               placeholder="Enter email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 border border-gray-800 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-600"
+              className={`w-full p-3 border rounded-md focus:outline-none focus:ring-1 ${
+                emailError
+                  ? "border-red-500 ring-red-500"
+                  : "border-gray-800 focus:ring-gray-600"
+              }`}
               required
-              disabled={loading} // Disable input during API call
+              disabled={loading}
             />
-            <button
-              type="submit"
-              className="w-full bg-black text-white p-3 rounded-md hover:bg-gray-800 transition"
-              disabled={loading} // Disable button during API call
-            >
-              {loading ? "Loading..." : "Send Email"}
-            </button>
-          </form>
-
-          <div className="flex justify-between text-sm text-gray-800 mt-4">
-            <NavLink to="/login">
-              <p className="cursor-pointer ml-auto ">Return to Login!</p>
-            </NavLink>
+            {emailError && (
+              <p className="text-red-500 text-sm mt-1">{emailError}</p>
+            )}
           </div>
+
+          <button
+            type="submit"
+            className="w-full bg-black text-white p-3 rounded-md hover:bg-gray-800 transition mt-2"
+            disabled={loading}
+          >
+            {loading ? "Loading..." : "Send Email"}
+          </button>
+        </form>
+
+        <div className="flex justify-between text-sm text-gray-800 mt-4">
+          <NavLink to="/login">
+            <p className="cursor-pointer ml-auto">Return to Login!</p>
+          </NavLink>
         </div>
       </div>
-    </>
+    </div>
   );
 }
