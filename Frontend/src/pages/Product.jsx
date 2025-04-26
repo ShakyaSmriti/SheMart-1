@@ -1,49 +1,124 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { Children, useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
 import RelatedProducts from "../components/RelatedProducts";
 import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const Product = () => {
   const { productId } = useParams();
-
-  console.log("Product ID:", productId);
+  // console.log("Product ID from useParams:", productId); // Log productId to debug
   const {
     products,
+    token,
     currency,
     addToCart,
     cartItems,
     addToWishlist,
-    wishlistItems,
+    wishlistItems = {}, // Ensure wishlistItems is always an object
+    setWishlistItems,
     setCartData,
+    backendUrl,
+    navigate,
   } = useContext(ShopContext);
 
   const [productData, setProductData] = useState(false);
   const [media, setMedia] = useState(""); // Updated to handle both image and video
   const [size, setSize] = useState("");
-  const [localWishlist, setLocalWishlist] = useState({});
+  const [review, setReview] = useState("");
+  const [description, setDescription] = useState("");
+  const [rating, setRating] = useState(0);
+  const [roundedUpRating, setRoundedUpRating] = useState(0);
 
-  const isInWishlist = localWishlist?.[productId];
+  // Safely check if productId exists in wishlistItems
+  const isInWishlist = !!wishlistItems[String(productId)]; // Convert productId to string
+  // console.log("isInWishlist", isInWishlist);
   const Icon = isInWishlist ? MdFavorite : MdFavoriteBorder;
 
   const fetchProductData = () => {
     const foundProduct = products.find((item) => item._id === productId);
-    console.log(foundProduct);
-
     if (foundProduct) {
       setProductData(foundProduct);
-
-      // Check for image or video and set the appropriate media
-      if (foundProduct.image && foundProduct.image.length > 0) {
+      if (foundProduct.image?.length > 0) {
         setMedia(foundProduct.image[0]); // Set the first image
-      } else if (foundProduct.video && foundProduct.video.length > 0) {
+      } else if (foundProduct.video?.length > 0) {
         setMedia(foundProduct.video[0]); // Set the first video
       }
     } else {
       console.error("Product not found for productId:", productId);
     }
   };
+
+  const handleAddReview = async (productId) => {
+    if (!token) {
+      toast.error("Please login to add a review.");
+      navigate("/login");
+    }
+
+    if (!productId) {
+      console.error("Product ID is undefined.");
+      toast.error("Unable to add review. Product ID is missing.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/review/add/${productId}`, // Ensure productId is valid
+        {
+          productId,
+          rating,
+          description,
+        },
+        {
+          headers: {
+            token,
+          },
+        }
+      );
+      console.log("Review response:", response.data);
+
+      // Update the review state with the new review
+      setReview((prevReviews) => [
+        ...prevReviews,
+        { rating, description, user: token }, // Add the new review to the list
+      ]);
+
+      setRating(0); // Reset rating after submission
+      setDescription(""); // Reset description after submission
+      toast.success("Review added successfully!");
+    } catch (error) {
+      console.error("Error adding review:", error);
+      toast.error(error.response?.data?.message || "Error adding review");
+    }
+  };
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!productId) {
+        console.error("Product ID is missing.");
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `${backendUrl}/api/review/list/${productId}`,
+          {
+            headers: {
+              token,
+            },
+          }
+        );
+        setReview(response.data); // Assuming the API returns an array of reviews
+        console.log("Fetched reviews:", response.data);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+      }
+    };
+
+    fetchReviews(); // Call the function
+  }, [productId, token]);
 
   useEffect(() => {
     const tempData = [];
@@ -63,12 +138,21 @@ const Product = () => {
   }, [cartItems]);
 
   useEffect(() => {
-    setLocalWishlist(wishlistItems);
-  }, [wishlistItems]);
+    if (products.length > 0 && productId) {
+      fetchProductData(productId);
+    }
+  }, [productId, products]);
 
   useEffect(() => {
-    fetchProductData();
-  }, [productId, products]);
+    if (review.length > 0) {
+      const averageRating =
+        review.reduce((sum, item) => sum + item.rating, 0) / review.length;
+      const roundedUpRating = Math.ceil(averageRating); // Round up the average rating
+      setRoundedUpRating(roundedUpRating); // Set the rounded-up rating
+    } else {
+      console.log("No reviews available to calculate average rating.");
+    }
+  }, [review]);
 
   return productData ? (
     <div className="border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100">
@@ -78,37 +162,33 @@ const Product = () => {
         <div className="flex-1 flex flex-col-reverse sm:flex-row gap-3">
           {/* Thumbnail List */}
           <div className="flex sm:flex-col overflow-x-auto sm:overflow-y-auto sm:justify-start gap-2">
-            {productData.image &&
-              productData.image.length > 0 &&
-              productData.image.map((item, index) => (
-                <img
-                  onClick={() => setMedia(item)}
-                  src={item.image}
-                  key={index}
-                  className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer "
-                />
-              ))}
-            {productData.video &&
-              productData.video.length > 0 &&
-              productData.video.map((item, index) => (
-                <img
-                  onClick={() => setMedia(item)}
-                  src={assets.videoThumbnail} // Replace with your custom thumbnail logic
-                  key={index}
-                  className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer"
-                />
-              ))}
+            {productData.image?.map((item, index) => (
+              <img
+                onClick={() => setMedia(item)}
+                src={item.image}
+                key={index}
+                className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer"
+              />
+            ))}
+            {productData.video?.map((item, index) => (
+              <img
+                onClick={() => setMedia(item)}
+                src={assets.videoThumbnail} // Replace with your custom thumbnail logic
+                key={index}
+                className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer"
+              />
+            ))}
           </div>
 
           {/* Main Media */}
           <div className="w-full sm:w-[80%]">
-            {productData.image && productData.image.length > 0 ? (
+            {productData.image?.length > 0 ? (
               <img
                 className="w-full h-auto aspect-[1/1] object-contain"
                 src={media}
                 alt="Main Product"
               />
-            ) : productData.video && productData.video.length > 0 ? (
+            ) : productData.video?.length > 0 ? (
               <video
                 className="w-full aspect-[1/1] object-contain"
                 src={media}
@@ -121,48 +201,21 @@ const Product = () => {
         </div>
 
         {/* ------ Product Info ------- */}
-        <div className="flex-1  ">
+        <div className="flex-1">
           <div className="flex items-center gap-40 mt-2">
             <h1 className="font-medium text-2xl">{productData.name}</h1>
-
-            {/* {isInWishlist ? (
-              <MdFavorite
-                className="cursor-pointer transition-colors duration-200"
-                size={25}
-                onClick={() => {
-                  addToWishlist(productId);
-                  setLocalWishlist((prev) => {
-                    const updated = { ...prev };
-                    delete updated[productId]; // Remove from wishlist
-                    return updated;
-                  });
-                }}
-              />
-            ) : (
-              <MdFavoriteBorder
-                className=" cursor-pointer transition-colors duration-200"
-                size={25}
-                onClick={() => {
-                  addToWishlist(productId);
-                  setLocalWishlist((prev) => ({
-                    ...prev,
-                    [productId]: true, // Add to wishlist
-                  }));
-                }}
-              />
-            )} */}
-
             <Icon
               className="cursor-pointer transition-colors duration-200"
               size={25}
               onClick={() => {
                 addToWishlist(productId);
-                setLocalWishlist((prev) => {
+                setWishlistItems((prev) => {
                   const updated = { ...prev };
+                  const key = String(productId); // Ensure key is a string
                   if (isInWishlist) {
-                    delete updated[productId]; // Remove
+                    delete updated[key]; // Remove from wishlist
                   } else {
-                    updated[productId] = true; // Add
+                    updated[key] = true; // Add to wishlist
                   }
                   return updated;
                 });
@@ -171,13 +224,19 @@ const Product = () => {
           </div>
 
           <div className="flex items-center gap-1 mt-2">
-            <img src={assets.star_icon} alt="Star" className="w-3.5" />
-            <img src={assets.star_icon} alt="Star" className="w-3.5" />
-            <img src={assets.star_icon} alt="Star" className="w-3.5" />
-            <img src={assets.star_icon} alt="Star" className="w-3.5" />
-            <img src={assets.star_dull_icon} alt="Star" className="w-3.5" />
-            <p className="pl-2">(123)</p>
+            {[...Array(5)].map((_, i) => (
+              <img
+                key={i}
+                src={
+                  i < roundedUpRating ? assets.star_icon : assets.star_dull_icon
+                }
+                alt="Star"
+                className="w-3.5"
+              />
+            ))}
+            <p className="pl-2">({review.length})</p>
           </div>
+
           <p>
             {currency} {productData.price}
           </p>
@@ -187,7 +246,7 @@ const Product = () => {
           <div className="flex flex-col gap-4 my-8">
             <p>Select Size</p>
             <div className="flex gap-2">
-              {productData.sizes.map((item, index) => (
+              {productData.sizes?.map((item, index) => (
                 <button
                   onClick={() => setSize(item)}
                   className={`border py-2 px-4 bg-gray-100 ${
@@ -203,7 +262,7 @@ const Product = () => {
 
           <button
             onClick={() => {
-              if (media.endsWith(".mp4")) {
+              if (media?.endsWith(".mp4")) {
                 addToCart(productData._id, size, "video");
               } else {
                 addToCart(productData._id, size, "image");
@@ -226,23 +285,75 @@ const Product = () => {
       {/* -----Description and review Section-------- */}
       <div className="mt-20">
         <div className="flex">
-          <b className="border px-5 py-3 text-sm">Description</b>
-          <p className="border px-5 py-3 text-sm">Reviews (123)</p>
+          {/* <b className="border px-5 py-3 text-sm">Description</b> */}
+          <p className="border px-5 py-3 text-2xl ">Reviews </p>
         </div>
 
-        <div className="flex flex-col gap-4 border px-6 py-6 text-sm text-gray-500">
-          <p>
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Facilis
-            veniam earum vel magnam cum pariatur consequatur repellat quidem
-            recusandae, eaque commodi. Necessitatibus cupiditate culpa quis.
-            Tempora ab aut quis earum!
-          </p>
-          <p>
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Amet,
-            ratione dolorum officiis molestiae nihil natus necessitatibus
-            quisquam quo sint porro hic soluta iure itaque unde tenetur
-            obcaecati quod eum quas.
-          </p>
+        <div className="flex flex-col gap-4 border px-6 py-6 text-sm text-gray-800">
+          {/* Star Rating Input */}
+          <div className="flex items-center gap-1 mt-2">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <img
+                key={star}
+                src={star <= rating ? assets.star_icon : assets.star_dull_icon}
+                alt="Star"
+                className="w-5 cursor-pointer"
+                onClick={() => setRating(star)} // Set rating on click
+                value={rating}
+              />
+            ))}
+            <p className="pl-2">{rating} / 5</p>
+          </div>
+
+          <div className="flex gap-2 items-center">
+            <textarea
+              onChange={(e) => setDescription(e.target.value)}
+              value={description}
+              className="w-full px-3 py-2 border rounded-lg border-gray-300"
+              placeholder="Write a review..."
+            />
+            <button
+              onClick={() => handleAddReview(productId)}
+              className="bg-black text-white px-8 py-2 rounded-lg text-sm active:bg-gray-700"
+            >
+              Add Review
+            </button>
+          </div>
+
+          <p className="py-2 border-b-2 border-gray-200">Users Reviews:</p>
+          {console.log("Fetched reviews:", review)}
+
+          {/* Display fetched reviews */}
+          {review && review.length > 0 ? (
+            review.map((item, index) => (
+              <div key={index} className="border-b py-4">
+                <div className="flex items-center gap-2">
+                  <p className="font-bold">
+                    {item.user === token ? "You" : "Anonymous"}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <img
+                        key={i}
+                        src={
+                          i < item.rating
+                            ? assets.star_icon
+                            : assets.star_dull_icon
+                        }
+                        alt="Star"
+                        className="w-4"
+                      />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-600">{item.description}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">
+              No reviews yet. Be the first to review!
+            </p>
+          )}
         </div>
       </div>
 
