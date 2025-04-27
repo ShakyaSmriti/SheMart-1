@@ -12,6 +12,7 @@ import Orders from "./pages/Orders";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import SearchBar from "./components/SearchBar";
+import Profile from "./pages/Profile";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -36,6 +37,7 @@ const App = () => {
         <Route path="/orders" element={<Orders />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
         <Route path="/wishlist" element={<WishList />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
       <Footer />
     </div>

@@ -278,6 +278,26 @@ const resetpassword = async (req, res) => {
   }
 };
 
+// Router for getting user profile
+const getProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId; // Use userId instead of id
+    console.log("Fetching profile for user ID:", userId);
+
+    const user = await userModel.findById(userId).select("-password");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.error("Get Profile Error:", error.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 export {
   loginUser,
   registerUser,
@@ -287,4 +307,5 @@ export {
   resetpasswordget,
   resetpassword,
   deleteUser,
+  getProfile,
 };

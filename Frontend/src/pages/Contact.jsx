@@ -8,7 +8,7 @@ const Contact = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -18,7 +18,7 @@ const Contact = () => {
       return;
     }
 
-    setLoading(true); // Start loading
+    setLoading(true);
 
     const templateParams = {
       name: name,
@@ -119,7 +119,6 @@ const Contact = () => {
               required
             ></textarea>
 
-            {/* Button with spinner */}
             <button
               type="submit"
               disabled={loading}

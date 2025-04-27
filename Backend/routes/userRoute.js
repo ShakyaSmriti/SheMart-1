@@ -1,5 +1,4 @@
 import express from "express";
-
 import {
   loginUser,
   registerUser,
@@ -9,7 +8,9 @@ import {
   resetpasswordget,
   resetpassword,
   deleteUser,
+  getProfile,
 } from "../controllers/userController.js";
+import authUser from "../middleware/Auth.js";
 
 const userRouter = express.Router();
 
@@ -19,7 +20,10 @@ userRouter.post("/admin", adminLogin);
 userRouter.get("/list", allUsers);
 userRouter.post("/remove/:id", deleteUser);
 
-// forget password routes
+// Profile route (protected)
+userRouter.get("/profile", authUser, getProfile); // Apply authUser middleware here
+
+// Forget password routes
 userRouter.post("/forget-password", forgetPasswordMail);
 userRouter.get("/reset-password/:id/:token", resetpasswordget);
 userRouter.post("/reset-password/:id/:token", resetpassword);
