@@ -3,24 +3,27 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+// Create a context for the shop
 export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
-  const currency = "Rs.";
-  const delivery_fee = 100;
+  // Initialize variables and states
+  const currency = "Rs."; // Currency symbol
+  const delivery_fee = 100; // Delivery fee
   const backendUrl =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:4001";
+    import.meta.env.VITE_BACKEND_URL || "http://localhost:4001"; // Backend URL
 
-  const [search, setSearch] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
-  const [cartItems, setCartItems] = useState({});
-  const [wishlistItems, setWishlistItems] = useState({});
-  const [cartData, setCartData] = useState({});
-  const [products, setProducts] = useState([]);
-  const [token, setToken] = useState("");
-  const [user, setUser] = useState(null); // 🆕 ADD USER STATE
+  const [search, setSearch] = useState(""); // Search term
+  const [showSearch, setShowSearch] = useState(false); // Boolean to toggle search visibility
+  const [cartItems, setCartItems] = useState({}); // Cart items
+  const [wishlistItems, setWishlistItems] = useState({}); // Wishlist items
+  const [cartData, setCartData] = useState({}); // Cart data
+  const [products, setProducts] = useState([]); // List of products
+  const [token, setToken] = useState(""); // User authentication token
+  const [user, setUser] = useState(null); // User data
   const navigate = useNavigate();
 
+  // Add an item to the cart
   const addToCart = async (itemId, size) => {
     if (!token) {
       toast.error("Please login to add items to cart");
@@ -68,6 +71,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // Get the total count of items in the cart
   const getCartCount = () => {
     let totalCount = 0;
     for (const items in cartItems) {
@@ -82,6 +86,7 @@ const ShopContextProvider = (props) => {
     return totalCount;
   };
 
+  // Update the quantity of an item in the cart
   const updateQuantity = async (itemId, size, quantity) => {
     let cartData = structuredClone(cartItems);
     cartData[itemId][size] = quantity;
@@ -99,6 +104,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // Get the total amount of items in the cart
   const getCartAmount = () => {
     let totalAmount = 0;
     for (const items in cartItems) {
@@ -114,6 +120,7 @@ const ShopContextProvider = (props) => {
     return totalAmount;
   };
 
+  // Fetch the list of products from the backend
   const getProductsData = async () => {
     try {
       const response = await axios.get(`${backendUrl}/api/product/list`);
@@ -128,6 +135,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // Fetch the user's cart data from the backend
   const getUserCart = async (token) => {
     try {
       if (!token) throw new Error("No authentication token provided");
@@ -152,6 +160,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // Add an item to the wishlist
   const addToWishlist = async (productId) => {
     if (!token) {
       toast.error("Please login to add items to wishlist");
@@ -206,6 +215,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // Fetch the user's wishlist data from the backend
   const getUserWishlist = async (token) => {
     try {
       if (!token) throw new Error("No authentication token provided");
@@ -232,6 +242,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // Fetch the user's profile data from the backend
   const getUserData = async (token) => {
     try {
       if (!token) throw new Error("No authentication token provided");
@@ -256,6 +267,7 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // Initialize data from local storage if token exists
   useEffect(() => {
     getProductsData();
   }, []);
@@ -266,10 +278,11 @@ const ShopContextProvider = (props) => {
       setToken(savedToken);
       getUserCart(savedToken);
       getUserWishlist(savedToken);
-      getUserData(savedToken); // 🆕 GET USER DATA
+      getUserData(savedToken); // Fetch user data
     }
   }, []);
 
+  // Context value to provide throughout the app
   const value = {
     products,
     currency,
@@ -293,11 +306,12 @@ const ShopContextProvider = (props) => {
     token,
     setToken,
     user,
-    setUser, 
+    setUser,
     addToWishlist,
     getUserWishlist,
   };
 
+  // Provide context value to child components
   return (
     <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>
   );

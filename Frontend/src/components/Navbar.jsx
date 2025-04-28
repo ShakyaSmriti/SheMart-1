@@ -74,7 +74,7 @@ const Navbar = () => {
             {/* Profile Icon with Initials */}
             <div
               onClick={() => (token ? null : navigate("/login"))}
-              className="w-8 h-8 rounded-full cursor-pointer bg-gray-400 flex items-center justify-center"
+              className="w-8 h-8 rounded-full cursor-pointer bg-black flex items-center justify-center"
             >
               <span className="text-white text-lg">
                 {token ? getInitials() : "?"}

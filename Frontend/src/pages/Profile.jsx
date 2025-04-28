@@ -16,7 +16,6 @@ const Profile = () => {
     dateOfBirth: "",
   });
 
-  // Fetch user profile data
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -31,17 +30,14 @@ const Profile = () => {
 
       if (response.data.success) {
         const fetchedUser = response.data.user;
+        const formattedDateOfBirth = fetchedUser.dateOfBirth
+          ? new Date(fetchedUser.dateOfBirth).toISOString().split("T")[0]
+          : "";
 
-        // Format the date of birth before setting it in formData
-        const formattedDateOfBirth =
-          fetchedUser.dateOfBirth &&
-          new Date(fetchedUser.dateOfBirth).toISOString().split("T")[0];
+        const updatedUser = { ...fetchedUser, dateOfBirth: formattedDateOfBirth };
 
-        setUser(fetchedUser);
-        setFormData({
-          ...fetchedUser,
-          dateOfBirth: formattedDateOfBirth || "",
-        });
+        setUser(updatedUser);
+        setFormData(updatedUser);
       } else {
         toast.error(response.data.message);
       }
@@ -56,20 +52,19 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  // Generate initials from the user's name
   const generateInitials = (name) => {
     if (!name) return "User";
-    const nameParts = name.split(" ");
-    return nameParts.map((part) => part[0].toUpperCase()).join("");
+    return name
+      .split(" ")
+      .map((part) => part[0].toUpperCase())
+      .join("");
   };
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  // Validate form data
   const validateForm = () => {
     if (!formData.name || !formData.email || !formData.gender) {
       toast.error("Please fill in all required fields.");
@@ -90,16 +85,9 @@ const Profile = () => {
     return true;
   };
 
-  // Submit form data
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
-
-    // Convert dateOfBirth to a Date object before sending
-    if (formData.dateOfBirth) {
-      formData.dateOfBirth = new Date(formData.dateOfBirth);
-    }
 
     try {
       const token = localStorage.getItem("token");
@@ -109,8 +97,14 @@ const Profile = () => {
       }
 
       const formDataToSend = new FormData();
-      Object.keys(formData).forEach((key) => {
-        formDataToSend.append(key, formData[key]);
+      const updatedData = { ...formData };
+
+      if (updatedData.dateOfBirth) {
+        updatedData.dateOfBirth = new Date(updatedData.dateOfBirth);
+      }
+
+      Object.keys(updatedData).forEach((key) => {
+        formDataToSend.append(key, updatedData[key]);
       });
 
       const response = await axios.put(
@@ -126,8 +120,18 @@ const Profile = () => {
 
       if (response.data.success) {
         toast.success("Profile updated successfully!");
-        setUser(response.data.user);
-        setFormData(response.data.user); // Update formData with the new data
+
+        const formattedDateOfBirth = response.data.user.dateOfBirth
+          ? new Date(response.data.user.dateOfBirth).toISOString().split("T")[0]
+          : "";
+
+        const updatedUser = {
+          ...response.data.user,
+          dateOfBirth: formattedDateOfBirth,
+        };
+
+        setUser(updatedUser);
+        setFormData(updatedUser);
         setIsEditing(false);
       } else {
         toast.error(response.data.message);
@@ -139,16 +143,15 @@ const Profile = () => {
     }
   };
 
-  // Handle cancel edit
   const handleCancel = () => {
-    setIsEditing(false);
-    setFormData({ ...user });
+    if (user) {
+      setFormData(user);
+      setIsEditing(false);
+    }
   };
 
-  // Handle edit mode toggle
   const handleEdit = () => setIsEditing(true);
 
-  // Field configuration for dynamic rendering
   const fields = [
     { label: "Name", name: "name", type: "text", required: true },
     { label: "Email", name: "email", type: "email", required: true },
@@ -158,7 +161,6 @@ const Profile = () => {
     { label: "Date of Birth", name: "dateOfBirth", type: "date" },
   ];
 
-  // Loading state
   if (!user) {
     return (
       <div className="animate-pulse flex justify-center mt-20">
@@ -183,7 +185,6 @@ const Profile = () => {
           {/* Left: Profile Initials */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              {/* Show initials if no profile picture */}
               <div className="w-40 h-40 rounded-full bg-black flex items-center justify-center text-white text-5xl font-bold">
                 {generateInitials(user.name)}
               </div>
@@ -192,8 +193,7 @@ const Profile = () => {
 
           {/* Right: Profile Data */}
           <div className="flex-1 w-full">
-            {/* View Mode */}
-            {!isEditing && (
+            {!isEditing ? (
               <form className="grid grid-cols-1 gap-6">
                 {fields.map((field) => (
                   <div key={field.name} className="flex flex-col">
@@ -210,19 +210,16 @@ const Profile = () => {
                   </div>
                 ))}
 
-                {/* Edit Button */}
                 <button
+                  type="button"
                   onClick={handleEdit}
                   aria-label="Edit Profile"
-                  className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-full"
+                  className="bg-black text-white px-6 py-2 rounded-full"
                 >
                   Edit Profile
                 </button>
               </form>
-            )}
-
-            {/* Edit Mode */}
-            {isEditing && (
+            ) : (
               <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6">
                 {fields.map((field) => (
                   <div key={field.name} className="flex flex-col">
@@ -255,12 +252,11 @@ const Profile = () => {
                   </div>
                 ))}
 
-                {/* Buttons */}
                 <div className="flex justify-end gap-4">
                   <button
                     type="submit"
                     aria-label="Save Changes"
-                    className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-full"
+                    className="bg-black text-white px-6 py-2 rounded-full"
                   >
                     Save Changes
                   </button>
@@ -268,7 +264,7 @@ const Profile = () => {
                     type="button"
                     onClick={handleCancel}
                     aria-label="Cancel Edit"
-                    className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-full"
+                    className="bg-black  text-white px-6 py-2 rounded-full"
                   >
                     Cancel
                   </button>

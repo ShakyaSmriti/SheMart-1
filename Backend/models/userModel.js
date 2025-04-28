@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, default: "" },
     dateOfBirth: { type: Date, default: null },
   },
-  { minimize: false, timestamps: true }
+  
 );
 
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);
