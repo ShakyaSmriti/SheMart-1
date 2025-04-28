@@ -298,6 +298,35 @@ const getProfile = async (req, res) => {
   }
 };
 
+// Update user profile
+export const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId; // Use 'userId' here as well
+    const { name, email, gender, address, phone, dateOfBirth, profilePicture } =
+      req.body;
+
+    // Find and update the user profile
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { name, email, gender, address, phone, dateOfBirth, profilePicture },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, user: updatedUser });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to update profile" });
+  }
+};
+
 export {
   loginUser,
   registerUser,

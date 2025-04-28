@@ -11,11 +11,15 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "product",
-        default: {},
+        default: [],
       },
     ],
+    address: { type: String, default: "" }, // New field
+    phone: { type: String, default: "" }, // New field
+    dateOfBirth: { type: Date, default: null }, // New field
+    profilePicture: { type: String, default: "" }, // New field
   },
-  { minimize: false }
+  { minimize: false, timestamps: true }
 );
 
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);

@@ -9,8 +9,10 @@ import {
   resetpassword,
   deleteUser,
   getProfile,
+  updateUserProfile, // Import the updateUserProfile controller
 } from "../controllers/userController.js";
 import authUser from "../middleware/Auth.js";
+import upload from "../middleware/multer.js"; // Import multer middleware
 
 const userRouter = express.Router();
 
@@ -21,7 +23,13 @@ userRouter.get("/list", allUsers);
 userRouter.post("/remove/:id", deleteUser);
 
 // Profile route (protected)
-userRouter.get("/profile", authUser, getProfile); // Apply authUser middleware here
+userRouter.get("/profile", authUser, getProfile); // Get profile (protected)
+userRouter.put(
+  "/update",
+  authUser,
+  upload.single("profilePicture"),
+  updateUserProfile
+); 
 
 // Forget password routes
 userRouter.post("/forget-password", forgetPasswordMail);
