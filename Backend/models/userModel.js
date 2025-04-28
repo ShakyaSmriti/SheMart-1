@@ -14,10 +14,9 @@ const userSchema = new mongoose.Schema(
         default: [],
       },
     ],
-    address: { type: String, default: "" }, // New field
-    phone: { type: String, default: "" }, // New field
-    dateOfBirth: { type: Date, default: null }, // New field
-    profilePicture: { type: String, default: "" }, // New field
+    address: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    dateOfBirth: { type: Date, default: null },
   },
   { minimize: false, timestamps: true }
 );

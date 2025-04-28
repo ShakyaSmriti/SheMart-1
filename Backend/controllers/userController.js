@@ -4,16 +4,16 @@ import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 import nodemailer from "nodemailer";
 
+// JWT Token creation function
 const createToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET);
 };
 
-// Route for user login
+// User login route
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user in the database
     const user = await userModel.findOne({ email });
     if (!user) {
       return res
@@ -21,7 +21,6 @@ const loginUser = async (req, res) => {
         .json({ success: false, message: "Invalid credentials" });
     }
 
-    // Validate password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res
@@ -29,7 +28,6 @@ const loginUser = async (req, res) => {
         .json({ success: false, message: "Invalid email or password" });
     }
 
-    // Generate JWT token
     const token = createToken(user._id);
     res.json({ success: true, token });
   } catch (error) {
@@ -40,12 +38,11 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Router for user register
+// User registration route
 const registerUser = async (req, res) => {
   try {
     const { name, email, password, confirmPassword, gender } = req.body;
 
-    // Check if user already exists
     const exists = await userModel.findOne({ email });
     if (exists) {
       return res
@@ -53,39 +50,37 @@ const registerUser = async (req, res) => {
         .json({ success: false, message: "User already exists." });
     }
 
-    // Validate email format
     if (!validator.isEmail(email)) {
       return res
         .status(400)
         .json({ success: false, message: "Please enter a valid email." });
     }
 
-    // Validate password length
     if (password.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: "Password should be at least 8 characters long.",
-      });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Password should be at least 8 characters long.",
+        });
     }
 
-    // Check if passwords match
     if (password !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Passwords do not match.",
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: "Passwords do not match." });
     }
 
-    // Validate gender
     const allowedGenders = ["Male", "Female", "Other"];
     if (!allowedGenders.includes(gender)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid gender. Please select Male, Female, or Other.",
-      });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Invalid gender. Please select Male, Female, or Other.",
+        });
     }
 
-    // Proceed with registration if validations pass
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new userModel({
       name,
@@ -109,7 +104,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// Router for admin login
+// Admin login route
 const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -125,10 +120,9 @@ const adminLogin = async (req, res) => {
         token,
       });
     } else {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid Credentials.",
-      });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid Credentials." });
     }
   } catch (error) {
     console.log(error);
@@ -138,7 +132,7 @@ const adminLogin = async (req, res) => {
   }
 };
 
-// Router for display all users
+// Get all users route
 const allUsers = async (req, res) => {
   try {
     const users = await userModel.find({});
@@ -149,7 +143,7 @@ const allUsers = async (req, res) => {
   }
 };
 
-// Router for deleting user
+// Delete user route
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -166,7 +160,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// Router for getting forget password mail and sending mail
+// Forget password mail route
 const forgetPasswordMail = async (req, res) => {
   const { email } = req.body;
 
@@ -215,27 +209,26 @@ const forgetPasswordMail = async (req, res) => {
   }
 };
 
-// Router for getting reset password page
+// Reset password page route
 const resetpasswordget = async (req, res) => {
   const { id, token } = req.params;
-  console.log(req.params);
 
   const oldUser = await userModel.findOne({ _id: id });
   if (!oldUser) {
     return res.json({ status: "User Not Exists!!" });
   }
+
   const secret = process.env.JWT_SECRET + oldUser.password;
 
   try {
     const verify = jwt.verify(token, secret);
     res.render("index", { email: verify.email, status: "Not Verified" });
   } catch (error) {
-    console.log(error);
     res.send("Not Verified");
   }
 };
 
-// Router for resetting password
+// Reset password route
 const resetpassword = async (req, res) => {
   const { id, token } = req.params;
   const { password, confirmPassword } = req.body;
@@ -256,33 +249,26 @@ const resetpassword = async (req, res) => {
   if (!oldUser) {
     return res.json({ status: "User Not Exists!!" });
   }
+
   const secret = process.env.JWT_SECRET + oldUser.password;
   try {
     const verify = jwt.verify(token, secret);
     const encryptedPassword = await bcrypt.hash(password, 10);
     await userModel.updateOne(
-      {
-        _id: id,
-      },
-      {
-        $set: {
-          password: encryptedPassword,
-        },
-      }
+      { _id: id },
+      { $set: { password: encryptedPassword } }
     );
 
     res.render("index", { email: verify.email, status: "verified" });
   } catch (error) {
-    console.log(error);
     res.json({ status: "Something Went Wrong" });
   }
 };
 
-// Router for getting user profile
+// Get user profile route
 const getProfile = async (req, res) => {
   try {
-    const userId = req.user.userId; // Use userId instead of id
-    console.log("Fetching profile for user ID:", userId);
+    const userId = req.user.userId;
 
     const user = await userModel.findById(userId).select("-password");
     if (!user) {
@@ -293,22 +279,28 @@ const getProfile = async (req, res) => {
 
     res.status(200).json({ success: true, user });
   } catch (error) {
-    console.error("Get Profile Error:", error.message);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// Update user profile
-export const updateUserProfile = async (req, res) => {
+// Update user profile route
+const updateUserProfile = async (req, res) => {
   try {
-    const userId = req.user.userId; // Use 'userId' here as well
-    const { name, email, gender, address, phone, dateOfBirth, profilePicture } =
-      req.body;
+    const userId = req.user.userId;
+    const { name, email, gender, address, phone, dateOfBirth } = req.body;
 
-    // Find and update the user profile
+    const formattedDateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+
     const updatedUser = await userModel.findByIdAndUpdate(
       userId,
-      { name, email, gender, address, phone, dateOfBirth, profilePicture },
+      {
+        name,
+        email,
+        gender,
+        address,
+        phone,
+        dateOfBirth: formattedDateOfBirth,
+      },
       { new: true }
     );
 
@@ -320,7 +312,6 @@ export const updateUserProfile = async (req, res) => {
 
     res.json({ success: true, user: updatedUser });
   } catch (error) {
-    console.error(error);
     res
       .status(500)
       .json({ success: false, message: "Failed to update profile" });
@@ -332,9 +323,10 @@ export {
   registerUser,
   adminLogin,
   allUsers,
+  deleteUser,
   forgetPasswordMail,
   resetpasswordget,
   resetpassword,
-  deleteUser,
   getProfile,
+  updateUserProfile,
 };

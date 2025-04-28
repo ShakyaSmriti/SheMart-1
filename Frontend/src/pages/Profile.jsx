@@ -14,10 +14,9 @@ const Profile = () => {
     address: "",
     phone: "",
     dateOfBirth: "",
-    profilePicture: "", // base64 or File object
   });
-  const [previewImage, setPreviewImage] = useState("");
 
+  // Fetch user profile data
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -27,24 +26,22 @@ const Profile = () => {
       }
 
       const response = await axios.get(`${backendUrl}/api/user/profile`, {
-        headers: {
-          token: token,
-        },
+        headers: { token },
       });
 
       if (response.data.success) {
-        setUser(response.data.user);
+        const fetchedUser = response.data.user;
 
         // Format the date of birth before setting it in formData
         const formattedDateOfBirth =
-          response.data.user.dateOfBirth &&
-          new Date(response.data.user.dateOfBirth).toISOString().split("T")[0];
+          fetchedUser.dateOfBirth &&
+          new Date(fetchedUser.dateOfBirth).toISOString().split("T")[0];
 
+        setUser(fetchedUser);
         setFormData({
-          ...response.data.user,
+          ...fetchedUser,
           dateOfBirth: formattedDateOfBirth || "",
         });
-        setPreviewImage(response.data.user.profilePicture || "");
       } else {
         toast.error(response.data.message);
       }
@@ -59,60 +56,49 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      // Ensure dateOfBirth is always in YYYY-MM-DD format
-      setFormData((prevData) => ({
-        ...prevData,
-        dateOfBirth:
-          user.dateOfBirth &&
-          new Date(user.dateOfBirth).toISOString().split("T")[0],
-      }));
-    }
-  }, [user]);
-
-  if (!user) {
-    return (
-      <div className="text-center mt-20 text-gray-600 text-xl">
-        Loading Profile...
-      </div>
-    );
-  }
-
-  const handleEdit = () => setIsEditing(true);
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setFormData({ ...user });
-    setPreviewImage(user?.profilePicture || "");
+  // Generate initials from the user's name
+  const generateInitials = (name) => {
+    if (!name) return "User";
+    const nameParts = name.split(" ");
+    return nameParts.map((part) => part[0].toUpperCase()).join("");
   };
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prevData) => ({
-        ...prevData,
-        profilePicture: file,
-      }));
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-      };
-      reader.readAsDataURL(file);
+  // Validate form data
+  const validateForm = () => {
+    if (!formData.name || !formData.email || !formData.gender) {
+      toast.error("Please fill in all required fields.");
+      return false;
     }
+
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+    if (!isValidEmail) {
+      toast.error("Please enter a valid email address.");
+      return false;
+    }
+
+    if (formData.phone && !/^\d{10}$/.test(formData.phone)) {
+      toast.error("Please enter a valid 10-digit phone number.");
+      return false;
+    }
+
+    return true;
   };
 
+  // Submit form data
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.gender) {
-      toast.error("Please fill in all required fields.");
-      return;
+    if (!validateForm()) return;
+
+    // Convert dateOfBirth to a Date object before sending
+    if (formData.dateOfBirth) {
+      formData.dateOfBirth = new Date(formData.dateOfBirth);
     }
 
     try {
@@ -123,23 +109,16 @@ const Profile = () => {
       }
 
       const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("email", formData.email);
-      formDataToSend.append("gender", formData.gender);
-      formDataToSend.append("address", formData.address);
-      formDataToSend.append("phone", formData.phone);
-      formDataToSend.append("dateOfBirth", formData.dateOfBirth);
-
-      if (formData.profilePicture instanceof File) {
-        formDataToSend.append("profilePicture", formData.profilePicture);
-      }
+      Object.keys(formData).forEach((key) => {
+        formDataToSend.append(key, formData[key]);
+      });
 
       const response = await axios.put(
         `${backendUrl}/api/user/update`,
         formDataToSend,
         {
           headers: {
-            token: token,
+            token,
             "Content-Type": "multipart/form-data",
           },
         }
@@ -148,6 +127,7 @@ const Profile = () => {
       if (response.data.success) {
         toast.success("Profile updated successfully!");
         setUser(response.data.user);
+        setFormData(response.data.user); // Update formData with the new data
         setIsEditing(false);
       } else {
         toast.error(response.data.message);
@@ -159,6 +139,39 @@ const Profile = () => {
     }
   };
 
+  // Handle cancel edit
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFormData({ ...user });
+  };
+
+  // Handle edit mode toggle
+  const handleEdit = () => setIsEditing(true);
+
+  // Field configuration for dynamic rendering
+  const fields = [
+    { label: "Name", name: "name", type: "text", required: true },
+    { label: "Email", name: "email", type: "email", required: true },
+    { label: "Gender", name: "gender", type: "select", required: true },
+    { label: "Address", name: "address", type: "text" },
+    { label: "Phone", name: "phone", type: "text" },
+    { label: "Date of Birth", name: "dateOfBirth", type: "date" },
+  ];
+
+  // Loading state
+  if (!user) {
+    return (
+      <div className="animate-pulse flex justify-center mt-20">
+        <div className="w-64 h-64 bg-gray-300 rounded-full"></div>
+        <div className="flex flex-col gap-4 mt-4">
+          <div className="h-6 w-48 bg-gray-300 rounded"></div>
+          <div className="h-6 w-48 bg-gray-300 rounded"></div>
+          <div className="h-6 w-48 bg-gray-300 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex justify-center mt-16">
       <div className="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-4xl">
@@ -167,28 +180,13 @@ const Profile = () => {
         </h2>
 
         <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
-          {/* Left: Profile Image */}
+          {/* Left: Profile Initials */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              <img
-                src={previewImage || "/default-profile.png"}
-                alt="Profile"
-                onError={(e) => {
-                  e.target.src = "https://via.placeholder.com/150"; // Fallback image
-                }}
-                className="w-40 h-40 object-cover rounded-full border-4 border-blue-500 shadow-md"
-              />
-              {isEditing && (
-                <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                  📷
-                </label>
-              )}
+              {/* Show initials if no profile picture */}
+              <div className="w-40 h-40 rounded-full bg-black flex items-center justify-center text-white text-5xl font-bold">
+                {generateInitials(user.name)}
+              </div>
             </div>
           </div>
 
@@ -197,28 +195,15 @@ const Profile = () => {
             {/* View Mode */}
             {!isEditing && (
               <form className="grid grid-cols-1 gap-6">
-                {[
-                  { label: "Name", name: "name" },
-                  { label: "Email", name: "email" },
-                  { label: "Gender", name: "gender" },
-                  { label: "Address", name: "address" },
-                  { label: "Phone", name: "phone" },
-                  { label: "Date of Birth", name: "dateOfBirth" },
-                ].map((field) => (
+                {fields.map((field) => (
                   <div key={field.name} className="flex flex-col">
                     <label className="text-gray-700 font-semibold mb-1">
                       {field.label}
                     </label>
                     <input
-                      type="text"
+                      type={field.type === "select" ? "text" : field.type}
                       name={field.name}
-                      value={
-                        field.name === "dateOfBirth"
-                          ? new Date(user[field.name])
-                              .toISOString()
-                              .split("T")[0]
-                          : user[field.name]
-                      }
+                      value={user[field.name] || ""}
                       disabled
                       className="border p-2 rounded-lg bg-gray-100"
                     />
@@ -228,7 +213,8 @@ const Profile = () => {
                 {/* Edit Button */}
                 <button
                   onClick={handleEdit}
-                  className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-full mt-4"
+                  aria-label="Edit Profile"
+                  className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-full"
                 >
                   Edit Profile
                 </button>
@@ -238,24 +224,7 @@ const Profile = () => {
             {/* Edit Mode */}
             {isEditing && (
               <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6">
-                {[
-                  { label: "Name", name: "name", type: "text", required: true },
-                  {
-                    label: "Email",
-                    name: "email",
-                    type: "email",
-                    required: true,
-                  },
-                  {
-                    label: "Gender",
-                    name: "gender",
-                    type: "select",
-                    required: true,
-                  },
-                  { label: "Address", name: "address", type: "text" },
-                  { label: "Phone", name: "phone", type: "text" },
-                  { label: "Date of Birth", name: "dateOfBirth", type: "date" },
-                ].map((field) => (
+                {fields.map((field) => (
                   <div key={field.name} className="flex flex-col">
                     <label className="text-gray-700 font-semibold mb-1">
                       {field.label}
@@ -290,6 +259,7 @@ const Profile = () => {
                 <div className="flex justify-end gap-4">
                   <button
                     type="submit"
+                    aria-label="Save Changes"
                     className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-full"
                   >
                     Save Changes
@@ -297,6 +267,7 @@ const Profile = () => {
                   <button
                     type="button"
                     onClick={handleCancel}
+                    aria-label="Cancel Edit"
                     className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-full"
                   >
                     Cancel

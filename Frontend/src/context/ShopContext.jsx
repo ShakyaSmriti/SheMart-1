@@ -18,9 +18,9 @@ const ShopContextProvider = (props) => {
   const [cartData, setCartData] = useState({});
   const [products, setProducts] = useState([]);
   const [token, setToken] = useState("");
+  const [user, setUser] = useState(null); // 🆕 ADD USER STATE
   const navigate = useNavigate();
 
-  // funtion to add items to cart
   const addToCart = async (itemId, size) => {
     if (!token) {
       toast.error("Please login to add items to cart");
@@ -53,35 +53,23 @@ const ShopContextProvider = (props) => {
 
     setCartItems(cartData);
 
-    // Call API to add item to cart
-    if (token) {
-      if (!backendUrl) {
-        console.error("Backend URL is not defined");
-        return;
-      }
-
-      try {
-        const response = await axios.post(
-          `${backendUrl}/api/cart/add`,
-          { itemId, size },
-          { headers: { token } }
-        );
-
-        // Show success message from backend
-        toast.success(response.data.message);
-      } catch (error) {
-        console.error("Error adding to cart:", error);
-        const errorMessage =
-          error.response?.data?.message || "Failed to add item to cart.";
-        toast.error(errorMessage);
-      }
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/cart/add`,
+        { itemId, size },
+        { headers: { token } }
+      );
+      toast.success(response.data.message);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to add item to cart.";
+      toast.error(errorMessage);
     }
   };
 
-  // function to get the total count of items in the cart
   const getCartCount = () => {
     let totalCount = 0;
-
     for (const items in cartItems) {
       for (const item in cartItems[items]) {
         try {
@@ -94,28 +82,23 @@ const ShopContextProvider = (props) => {
     return totalCount;
   };
 
-  // function to update the quantity of items in the cart
   const updateQuantity = async (itemId, size, quantity) => {
     let cartData = structuredClone(cartItems);
     cartData[itemId][size] = quantity;
     setCartItems(cartData);
 
-    //adding update api
-    if (token) {
-      try {
-        await axios.post(
-          backendUrl + "/api/cart/update",
-          { itemId, size, quantity },
-          { headers: { token } }
-        );
-      } catch (error) {
-        console.log(error);
-        toast.error(error.message);
-      }
+    try {
+      await axios.post(
+        `${backendUrl}/api/cart/update`,
+        { itemId, size, quantity },
+        { headers: { token } }
+      );
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
     }
   };
 
-  // function to get the total amount of items in the cart
   const getCartAmount = () => {
     let totalAmount = 0;
     for (const items in cartItems) {
@@ -131,10 +114,9 @@ const ShopContextProvider = (props) => {
     return totalAmount;
   };
 
-  // function to get the products data from the backend
   const getProductsData = async () => {
     try {
-      const response = await axios.get(backendUrl + "/api/product/list");
+      const response = await axios.get(`${backendUrl}/api/product/list`);
       if (response.data.success) {
         setProducts(response.data.products);
       } else {
@@ -146,23 +128,15 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  // function to get the user cart data from the backend
   const getUserCart = async (token) => {
-    // console.log(token);
     try {
-      if (!token) {
-        throw new Error("No authentication token provided");
-      }
+      if (!token) throw new Error("No authentication token provided");
 
       const response = await axios.post(
-        `${backendUrl}/api/cart/get`, // Ensure proper URL formatting
+        `${backendUrl}/api/cart/get`,
         {},
-        {
-          headers: { token }, // Use Authorization header
-        }
+        { headers: { token } }
       );
-
-      console.log(response.data.cartData); // Log the cart data
 
       if (response.data.success) {
         setCartItems(response.data.cartData);
@@ -178,7 +152,6 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  // function to add items to the wishlist
   const addToWishlist = async (productId) => {
     if (!token) {
       toast.error("Please login to add items to wishlist");
@@ -197,16 +170,11 @@ const ShopContextProvider = (props) => {
     if (!wishlistData[productId]) {
       wishlistData[productId] = {
         type: productData.video ? "video" : "image",
-        addedAt: new Date().toISOString(), // Optional metadata
+        addedAt: new Date().toISOString(),
       };
     }
 
     setWishlistItems(wishlistData);
-
-    if (!backendUrl) {
-      console.error("Backend URL is not defined");
-      return;
-    }
 
     try {
       const response = await axios.post(
@@ -217,8 +185,6 @@ const ShopContextProvider = (props) => {
 
       if (response.data.success) {
         toast.success(response.data.message);
-
-        // Toggle wishlist items
         setWishlistItems((prev) => {
           const updatedWishlist = { ...prev };
           if (updatedWishlist[productId]) {
@@ -240,12 +206,9 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  // function to get the user wishlist data from the backend
   const getUserWishlist = async (token) => {
     try {
-      if (!token) {
-        throw new Error("No authentication token provided");
-      }
+      if (!token) throw new Error("No authentication token provided");
 
       const response = await axios.get(`${backendUrl}/api/wishlist/get`, {
         headers: { token },
@@ -269,18 +232,41 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  // use effect to get the products data when the component mounts
+  const getUserData = async (token) => {
+    try {
+      if (!token) throw new Error("No authentication token provided");
+
+      const response = await axios.get(`${backendUrl}/api/user/profile`, {
+        headers: { token },
+      });
+
+      if (response.data.success) {
+        setUser(response.data.user);
+      } else {
+        throw new Error(response.data.message || "Failed to fetch user data");
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching user data:",
+        error.response?.data || error.message
+      );
+      toast.error(
+        error.response?.data?.message || "Error fetching user profile"
+      );
+    }
+  };
+
   useEffect(() => {
     getProductsData();
   }, []);
 
-  // use effect to get the user cart data when the component mounts
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     if (savedToken && !token) {
       setToken(savedToken);
-      getUserCart(savedToken); // already in your code
-      getUserWishlist(savedToken); // ADD THIS line
+      getUserCart(savedToken);
+      getUserWishlist(savedToken);
+      getUserData(savedToken); // 🆕 GET USER DATA
     }
   }, []);
 
@@ -291,10 +277,10 @@ const ShopContextProvider = (props) => {
     search,
     setSearch,
     showSearch,
-    setCartData,
     setShowSearch,
     cartItems,
     cartData,
+    setCartData,
     setCartItems,
     addToCart,
     getCartCount,
@@ -304,8 +290,10 @@ const ShopContextProvider = (props) => {
     backendUrl,
     wishlistItems,
     setWishlistItems,
-    setToken,
     token,
+    setToken,
+    user,
+    setUser, 
     addToWishlist,
     getUserWishlist,
   };
