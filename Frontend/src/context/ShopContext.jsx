@@ -276,11 +276,17 @@ const ShopContextProvider = (props) => {
     const savedToken = localStorage.getItem("token");
     if (savedToken && !token) {
       setToken(savedToken);
-      getUserCart(savedToken);
-      getUserWishlist(savedToken);
-      getUserData(savedToken); // Fetch user data
     }
   }, []);
+
+  useEffect(() => {
+    if (token) {
+      getUserCart(token);
+      getUserWishlist(token);
+      getUserData(token);
+    }
+  }, [token]);
+  
 
   // Context value to provide throughout the app
   const value = {
