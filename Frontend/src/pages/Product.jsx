@@ -6,6 +6,8 @@ import RelatedProducts from "../components/RelatedProducts";
 import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useMemo } from "react";
+import { use } from "react";
 
 const Product = () => {
   const { productId } = useParams();
@@ -17,24 +19,38 @@ const Product = () => {
     addToCart,
     cartItems,
     addToWishlist,
-    wishlistItems = {}, // Ensure wishlistItems is always an object
+    wishlistItems,
     setWishlistItems,
     setCartData,
     backendUrl,
-    navigate,
+    getUserWishlist,
   } = useContext(ShopContext);
 
   const [productData, setProductData] = useState(false);
-  const [media, setMedia] = useState(""); // Updated to handle both image and video
+  const [media, setMedia] = useState("");
   const [size, setSize] = useState("");
   const [review, setReview] = useState("");
   const [description, setDescription] = useState("");
   const [rating, setRating] = useState(0);
   const [roundedUpRating, setRoundedUpRating] = useState(0);
+  const [isInWishlist, setIsInWishlist] = useState(false);
 
-  // Safely check if productId exists in wishlistItems
-  const isInWishlist = !!wishlistItems[String(productId)]; // Convert productId to string
-  // console.log("isInWishlist", isInWishlist);
+  // console.log(`wishlistItems`, wishlistItems);
+
+  // Check if the product is in the wishlist
+
+  useEffect(() => {
+    if (Array.isArray(wishlistItems)) {
+      const foundProduct = wishlistItems.find((item) => item._id === productId);
+
+      setIsInWishlist(!!foundProduct); // Sets to true if foundProduct exists, otherwise false
+    } else {
+      setIsInWishlist(false); // If wishlistItems is not an array, set to false
+    }
+  }, [wishlistItems, productId]);
+
+  console.log(`inside productId`, isInWishlist);
+
   const Icon = isInWishlist ? MdFavorite : MdFavoriteBorder;
 
   const fetchProductData = () => {
@@ -52,11 +68,6 @@ const Product = () => {
   };
 
   const handleAddReview = async (productId) => {
-    if (!token) {
-      toast.error("Please login to add a review.");
-      navigate("/login");
-    }
-
     if (!productId) {
       console.error("Product ID is undefined.");
       toast.error("Unable to add review. Product ID is missing.");
@@ -111,7 +122,7 @@ const Product = () => {
           }
         );
         setReview(response.data); // Assuming the API returns an array of reviews
-        console.log("Fetched reviews:", response.data);
+        // console.log("Fetched reviews:", response.data);
       } catch (error) {
         console.error("Error fetching reviews:", error);
       }
@@ -207,15 +218,19 @@ const Product = () => {
             <Icon
               className="cursor-pointer transition-colors duration-200"
               size={25}
-              onClick={() => {
-                addToWishlist(productId);
-                setWishlistItems((prev) => {
+              onClick={async () => {
+                await addToWishlist(productId);
+                await setWishlistItems((prev) => {
                   const updated = { ...prev };
-                  const key = String(productId); // Ensure key is a string
-                  if (isInWishlist) {
+
+                  const key = productId; // Ensure key is a string
+                  if (wishlistItems[key]) {
                     delete updated[key]; // Remove from wishlist
+                    // console.log(updated[key]);
+                    console.log("Removed from wishlist:", key);
                   } else {
                     updated[key] = true; // Add to wishlist
+                    console.log("Added to wishlist:", key);
                   }
                   return updated;
                 });
@@ -321,7 +336,7 @@ const Product = () => {
           </div>
 
           <p className="py-2 border-b-2 border-gray-200">Users Reviews:</p>
-          {console.log("Fetched reviews:", review)}
+          {/* {console.log("Fetched reviews:", review)} */}
 
           {/* Display fetched reviews */}
           {review && review.length > 0 ? (

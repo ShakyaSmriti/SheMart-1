@@ -174,17 +174,6 @@ const ShopContextProvider = (props) => {
       return;
     }
 
-    let wishlistData = wishlistItems ? structuredClone(wishlistItems) : {};
-
-    if (!wishlistData[productId]) {
-      wishlistData[productId] = {
-        type: productData.video ? "video" : "image",
-        addedAt: new Date().toISOString(),
-      };
-    }
-
-    setWishlistItems(wishlistData);
-
     try {
       const response = await axios.post(
         `${backendUrl}/api/wishlist/add`,
@@ -192,22 +181,20 @@ const ShopContextProvider = (props) => {
         { headers: { token } }
       );
 
+      console.log(`data`, response.data);
+      // setWishlistItems(response.data.wishList);
+
       if (response.data.success) {
-        toast.success(response.data.message);
-        setWishlistItems((prev) => {
-          const updatedWishlist = { ...prev };
-          if (updatedWishlist[productId]) {
-            delete updatedWishlist[productId];
-          } else {
-            updatedWishlist[productId] = {
-              type: productData.video ? "video" : "image",
-              addedAt: new Date().toISOString(),
-            };
-          }
-          return updatedWishlist;
+        toast.success(response.data.message, {
+          autoClose: 500, // closes after 2 seconds
+          onClose: () => {
+            window.location.reload();
+          },
         });
       } else {
-        toast.error(response.data.message);
+        toast.error(response.data.message, {
+          autoClose: 500,
+        });
       }
     } catch (error) {
       console.error("Error adding to wishlist:", error);
@@ -218,14 +205,18 @@ const ShopContextProvider = (props) => {
   // Fetch the user's wishlist data from the backend
   const getUserWishlist = async (token) => {
     try {
-      if (!token) throw new Error("No authentication token provided");
+      if (!token) {
+        throw new Error("No authentication token provided");
+      }
 
       const response = await axios.get(`${backendUrl}/api/wishlist/get`, {
         headers: { token },
       });
 
+      // console.log(response.data);
+
       if (response.data.success) {
-        setWishlistItems(response.data.wishlistData);
+        setWishlistItems(response.data.wishList);
       } else {
         throw new Error(
           response.data.message || "Failed to fetch wishlist data"
@@ -267,6 +258,16 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // Fetch the user's wishlist data when the token changes
+  useEffect(() => {
+    if (token) {
+      getUserWishlist(token);
+    } else {
+      // Optional: Handle case where token is not available
+      console.warn("No authentication token available.");
+    }
+  }, [token]);
+
   // Initialize data from local storage if token exists
   useEffect(() => {
     getProductsData();
@@ -286,7 +287,6 @@ const ShopContextProvider = (props) => {
       getUserData(token);
     }
   }, [token]);
-  
 
   // Context value to provide throughout the app
   const value = {

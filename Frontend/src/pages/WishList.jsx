@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-import axios from "axios";
 import Title from "../components/Title";
 import { ShopContext } from "../context/ShopContext";
 import { toast } from "react-toastify";
@@ -11,46 +10,11 @@ const WishList = () => {
     token,
     addToCart,
     wishlistItems,
-    setWishlistItems,
-    backendUrl,
+    getUserWishlist,
   } = useContext(ShopContext);
 
-  const [wishlistData, setWishlistData] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState({}); // 🆕 To store selected size for each product
-
-  const getUserWishlist = async (token) => {
-    try {
-      if (!token) {
-        throw new Error("No authentication token provided");
-      }
-
-      const response = await axios.get(`${backendUrl}/api/wishlist/get`, {
-        headers: { token },
-      });
-
-      console.log("Wishlist Data from API:", response.data.wishList);
-
-      if (response.data.success) {
-        const wishlistArray = Array.isArray(response.data.wishList)
-          ? response.data.wishList
-          : Object.values(response.data.wishList);
-
-        setWishlistItems(wishlistArray);
-      } else {
-        throw new Error(
-          response.data.message || "Failed to fetch wishlist data"
-        );
-      }
-    } catch (error) {
-      console.error(
-        "Error fetching wishlist:",
-        error.response?.data || error.message
-      );
-      toast.error(
-        error.response?.data?.message || "Error fetching wishlist data"
-      );
-    }
-  };
+  const [selectedSizes, setSelectedSizes] = useState({});
+  const [wishlistData, setWishlistData] = useState([]); // 🆕 State for filtered wishlist data
 
   useEffect(() => {
     if (token) {
@@ -160,7 +124,7 @@ const WishList = () => {
                       productData.video?.length > 0 ? "video" : "image";
                     addToCart(productData._id, selectedSize, mediaType);
                   }}
-                  className="bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
+                  className="bg-black  text-white px-8 py-3 text-sm active:bg-gray-700"
                 >
                   Add to Cart
                 </button>
