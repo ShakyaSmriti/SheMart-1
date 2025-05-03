@@ -161,62 +161,88 @@ const ShopContextProvider = (props) => {
   };
 
   // Add an item to the wishlist
+
   const addToWishlist = async (productId) => {
     if (!token) {
       toast.error("Please login to add items to wishlist");
       navigate("/login");
-      return;
+      return { success: false };
     }
-
+  
     const productData = products.find((product) => product._id === productId);
     if (!productData) {
       toast.error("Product not found");
-      return;
+      return { success: false };
     }
-
+  
     try {
       const response = await axios.post(
         `${backendUrl}/api/wishlist/add`,
         { productId },
         { headers: { token } }
       );
-
-      console.log(`data`, response.data);
-      // setWishlistItems(response.data.wishList);
-
+  
+      console.log("Wishlist API Response:", response.data);
+  
       if (response.data.success) {
+        setWishlistItems((prevWishlist) => {
+          const alreadyAdded = prevWishlist.some(
+            (item) => item._id.toString() === productId
+          );
+  
+          let updatedWishlist;
+          if (alreadyAdded) {
+            // Remove from wishlist
+            updatedWishlist = prevWishlist.filter(
+              (item) => item._id.toString() !== productId
+            );
+          } else {
+            // Add to wishlist
+            updatedWishlist = [...prevWishlist, { _id: productId }];
+          }
+  
+          return updatedWishlist;
+        });
+  
         toast.success(response.data.message, {
-          autoClose: 500, // closes after 2 seconds
-          onClose: () => {
-            window.location.reload();
-          },
+          autoClose: 2000,
         });
+  
+        return response.data; // Return server response
       } else {
-        toast.error(response.data.message, {
-          autoClose: 500,
+        toast.error(response.data.message || "Failed to update wishlist", {
+          autoClose: 2000,
         });
+        return response.data;
       }
     } catch (error) {
       console.error("Error adding to wishlist:", error);
-      toast.error(error.response?.data?.message || "Failed to add to wishlist");
+      toast.error(
+        error.response?.data?.message || "Failed to add to wishlist",
+        { autoClose: 2000 }
+      );
+      return { success: false, message: "Network or server error" };
     }
   };
-
+  
   // Fetch the user's wishlist data from the backend
   const getUserWishlist = async (token) => {
     try {
       if (!token) {
         throw new Error("No authentication token provided");
       }
-
+  
       const response = await axios.get(`${backendUrl}/api/wishlist/get`, {
         headers: { token },
       });
-
-      // console.log(response.data);
-
+  
       if (response.data.success) {
-        setWishlistItems(response.data.wishList);
+        // Make sure wishlist is always an array
+        const wishList = Array.isArray(response.data.wishList)
+          ? response.data.wishList
+          : [];
+  
+        setWishlistItems(wishList);
       } else {
         throw new Error(
           response.data.message || "Failed to fetch wishlist data"

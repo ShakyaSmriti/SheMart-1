@@ -216,26 +216,26 @@ const Product = () => {
           <div className="flex items-center gap-40 mt-2">
             <h1 className="font-medium text-2xl">{productData.name}</h1>
             <Icon
-              className="cursor-pointer transition-colors duration-200"
-              size={25}
-              onClick={async () => {
-                await addToWishlist(productId);
-                await setWishlistItems((prev) => {
-                  const updated = { ...prev };
+  className="cursor-pointer transition-colors duration-200"
+  size={25}
+  onClick={async () => {
+    // Optimistically toggle UI
+    const wasInWishlist = isInWishlist;
+    setIsInWishlist(!wasInWishlist);
 
-                  const key = productId; // Ensure key is a string
-                  if (wishlistItems[key]) {
-                    delete updated[key]; // Remove from wishlist
-                    // console.log(updated[key]);
-                    console.log("Removed from wishlist:", key);
-                  } else {
-                    updated[key] = true; // Add to wishlist
-                    console.log("Added to wishlist:", key);
-                  }
-                  return updated;
-                });
-              }}
-            />
+    try {
+      const result = await addToWishlist(productId);
+
+      if (!result?.success) {
+        // Revert on failure
+        setIsInWishlist(wasInWishlist);
+      }
+    } catch (error) {
+      // Revert on error
+      setIsInWishlist(wasInWishlist);
+    }
+  }}
+/>
           </div>
 
           <div className="flex items-center gap-1 mt-2">
