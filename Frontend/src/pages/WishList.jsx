@@ -2,7 +2,8 @@ import React, { useContext, useEffect, useState } from "react";
 import Title from "../components/Title";
 import { ShopContext } from "../context/ShopContext";
 import { toast } from "react-toastify";
-import { MdFavorite } from "react-icons/md";
+import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
+import { Link } from "react-router-dom";
 
 const WishList = () => {
   const {
@@ -72,7 +73,13 @@ const WishList = () => {
       </div>
 
       {wishlistData.length === 0 ? (
-        <p>Your wishlist is empty.</p>
+        <div className="flex flex-col items-center justify-center h-64 text-gray-500 text-center">
+        <MdFavoriteBorder size={48} className="mb-4 text-gray-300" />
+        <p className="text-lg font-medium">Your wishlist is empty.</p>
+        <p className="text-sm mt-2">Add items to your wishlist to save them for later!</p>
+      
+        <Link to="/collection" className="mt-4 px-4 py-2 bg-black text-white text-sm hover:bg-gray-800 rounded">Browse Products</Link>
+      </div>
       ) : (
         <div>
           {wishlistData.map((productData) => {
@@ -153,8 +160,7 @@ const WishList = () => {
                   </button>
                 </div>
 
-                {/* 🔴 New: Remove from Wishlist Button */}
-                {/* ❤️ Use Icon Instead of Text */}
+      
 <div
   onClick={() => handleRemoveFromWishlist(productData._id)}
   className="cursor-pointer text-red-500 hover:text-red-700 transition-colors duration-200"
