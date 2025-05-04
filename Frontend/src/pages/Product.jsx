@@ -1,4 +1,4 @@
-import React, { Children, useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { assets } from "../assets/assets";
@@ -6,12 +6,9 @@ import RelatedProducts from "../components/RelatedProducts";
 import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useMemo } from "react";
-import { use } from "react";
 
 const Product = () => {
   const { productId } = useParams();
-  // console.log("Product ID from useParams:", productId); // Log productId to debug
   const {
     products,
     token,
@@ -25,7 +22,6 @@ const Product = () => {
     backendUrl,
     getUserWishlist,
   } = useContext(ShopContext);
-
   const [productData, setProductData] = useState(false);
   const [media, setMedia] = useState("");
   const [size, setSize] = useState("");
@@ -34,22 +30,19 @@ const Product = () => {
   const [rating, setRating] = useState(0);
   const [roundedUpRating, setRoundedUpRating] = useState(0);
   const [isInWishlist, setIsInWishlist] = useState(false);
-
-  // console.log(`wishlistItems`, wishlistItems);
-
+  const [isImageChanging, setIsImageChanging] = useState(false);
+  const [viewAngle, setViewAngle] = useState("front"); // front, side, back
+  const [zoomLevel, setZoomLevel] = useState(1);
+  
   // Check if the product is in the wishlist
-
   useEffect(() => {
     if (Array.isArray(wishlistItems)) {
       const foundProduct = wishlistItems.find((item) => item._id === productId);
-
       setIsInWishlist(!!foundProduct); // Sets to true if foundProduct exists, otherwise false
     } else {
       setIsInWishlist(false); // If wishlistItems is not an array, set to false
     }
   }, [wishlistItems, productId]);
-
-  console.log(`inside productId`, isInWishlist);
 
   const Icon = isInWishlist ? MdFavorite : MdFavoriteBorder;
 
@@ -67,147 +60,178 @@ const Product = () => {
     }
   };
 
-  const handleAddReview = async (productId) => {
-    if (!productId) {
-      console.error("Product ID is undefined.");
-      toast.error("Unable to add review. Product ID is missing.");
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        `${backendUrl}/api/review/add/${productId}`, // Ensure productId is valid
-        {
-          productId,
-          rating,
-          description,
-        },
-        {
-          headers: {
-            token,
-          },
-        }
-      );
-      console.log("Review response:", response.data);
-
-      // Update the review state with the new review
-      setReview((prevReviews) => [
-        ...prevReviews,
-        { rating, description, user: token }, // Add the new review to the list
-      ]);
-
-      setRating(0); // Reset rating after submission
-      setDescription(""); // Reset description after submission
-      toast.success("Review added successfully!");
-    } catch (error) {
-      console.error("Error adding review:", error);
-      toast.error(error.response?.data?.message || "Error adding review");
-    }
-  };
-
-  useEffect(() => {
-    const fetchReviews = async () => {
-      if (!productId) {
-        console.error("Product ID is missing.");
-        return;
-      }
-
-      try {
-        const response = await axios.get(
-          `${backendUrl}/api/review/list/${productId}`,
-          {
-            headers: {
-              token,
-            },
-          }
-        );
-        setReview(response.data); // Assuming the API returns an array of reviews
-        // console.log("Fetched reviews:", response.data);
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-      }
-    };
-
-    fetchReviews(); // Call the function
-  }, [productId, token]);
-
-  useEffect(() => {
-    const tempData = [];
-    for (const items in cartItems) {
-      for (const item in cartItems[items]) {
-        if (item !== "type" && cartItems[items][item] > 0) {
-          tempData.push({
-            _id: items,
-            size: item,
-            quantity: cartItems[items][item],
-            type: cartItems[items].type || "image", // Default to image if type is missing
-          });
-        }
-      }
-    }
-    setCartData(tempData);
-  }, [cartItems]);
-
   useEffect(() => {
     if (products.length > 0 && productId) {
       fetchProductData(productId);
     }
   }, [productId, products]);
 
-  useEffect(() => {
-    if (review.length > 0) {
-      const averageRating =
-        review.reduce((sum, item) => sum + item.rating, 0) / review.length;
-      const roundedUpRating = Math.ceil(averageRating); // Round up the average rating
-      setRoundedUpRating(roundedUpRating); // Set the rounded-up rating
+  // Apply transformations based on viewAngle
+  const getImageTransformStyle = () => {
+    if (viewAngle === "side") {
+      return {
+        transform: `translateX(-8%) scale(${zoomLevel}) perspective(1000px) rotateY(25deg)`,
+        transition: "transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+      };
+    } else if (viewAngle === "back") {
+      return {
+        transform: `translateX(8%) scale(${zoomLevel}) perspective(1000px) rotateY(-25deg)`,
+        transition: "transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+      };
     } else {
-      console.log("No reviews available to calculate average rating.");
+      // Front view
+      return {
+        transform: `scale(${zoomLevel})`,
+        transition: "transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
+      };
     }
-  }, [review]);
+  };
+
+  const handleViewChange = (angle, zoom = 1) => {
+    // Don't do anything if it's the same view
+    if (angle === viewAngle && zoom === zoomLevel) return;
+    
+    // Start transition effect
+    setIsImageChanging(true);
+    
+    // Change the view after a short delay
+    setTimeout(() => {
+      setViewAngle(angle);
+      setZoomLevel(zoom);
+      
+      // End transition effect after the new view is set
+      setTimeout(() => {
+        setIsImageChanging(false);
+      }, 100);
+    }, 150);
+  };
+
+  // Generate view thumbnails
+  const getProductViews = () => {
+    // Base image or video to use
+    const baseMedia = productData.image?.length > 0 
+      ? productData.image[0] 
+      : productData.video?.length > 0 
+        ? productData.video[0] 
+        : null;
+    
+    if (!baseMedia) return [];
+    
+    // Define our view configurations
+    const views = [
+      {
+        id: "front",
+        src: baseMedia,
+        label: "Front View",
+        type: baseMedia.endsWith(".mp4") ? "video" : "image",
+       
+      },
+      {
+        id: "side",
+        src: baseMedia,
+        label: "Side View",
+        type: baseMedia.endsWith(".mp4") ? "video" : "image",
+        zoomLevel: 4,
+       
+      },
+      {
+        id: "back",
+        src: baseMedia,
+        label: "Back View",
+        type: baseMedia.endsWith(".mp4") ? "video" : "image",
+        zoomLevel: 2,
+       
+      }
+    ];
+    
+    // Add actual different images if available
+    // if (productData.image && productData.image.length > 1) {
+    //   productData.image.forEach((img, index) => {
+    //     if (index > 0 && index < 3) {
+    //       views[index].src = img;
+    //     }
+    //   });
+    // }
+    
+    // Add videos if available
+    if (productData.video && productData.video.length > 0) {
+      views.push({
+        id: "video",
+        src: productData.video[0],
+        label: "Video",
+        type: "video",
+        zoomLevel: 4,
+        description: "Product video"
+      });
+    }
+    
+    return views;
+  };
 
   return productData ? (
     <div className="border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100">
       {/* Product Data */}
       <div className="flex gap-12 flex-col sm:flex-row">
         {/* Product Media */}
-        <div className="flex-1 flex flex-col-reverse sm:flex-row gap-3">
-          {/* Thumbnail List */}
-          <div className="flex sm:flex-col overflow-x-auto sm:overflow-y-auto sm:justify-start gap-2">
-            {productData.image?.map((item, index) => (
-              <img
-                onClick={() => setMedia(item)}
-                src={item.image}
-                key={index}
-                className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer"
-              />
-            ))}
-            {productData.video?.map((item, index) => (
-              <img
-                onClick={() => setMedia(item)}
-                src={assets.videoThumbnail} // Replace with your custom thumbnail logic
-                key={index}
-                className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer"
-              />
-            ))}
-          </div>
-
+        <div className="flex-1 flex flex-col gap-6">
           {/* Main Media */}
-          <div className="w-full sm:w-[80%]">
-            {productData.image?.length > 0 ? (
-              <img
-                className="w-full h-auto aspect-[1/1] object-contain"
-                src={media}
-                alt="Main Product"
-              />
-            ) : productData.video?.length > 0 ? (
-              <video
-                className="w-full aspect-[1/1] object-contain"
-                src={media}
-                autoPlay
-                loop
-                muted
-              />
-            ) : null}
+          <div className="w-full overflow-hidden relative">
+            <div 
+              className={`w-full flex justify-center items-center h-96 transition-opacity duration-300 ${
+                isImageChanging ? "opacity-70" : "opacity-100"
+              }`}
+            >
+              {media?.endsWith(".mp4") || media?.includes(".mp4") ? (
+                <video
+                  className="w-full h-full object-contain"
+                  src={media}
+                  autoPlay
+                  loop
+                  muted
+                />
+              ) : (
+                <div className="w-full h-full flex justify-center items-center overflow-hidden">
+                  <img
+                    style={getImageTransformStyle()}
+                    src={media}
+                    alt="Main Product"
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Thumbnail List - Now below the main image */}
+          <div className="flex justify-center gap-4 overflow-x-auto">
+            {getProductViews().map((view, index) => (
+              <div
+                key={index}
+                className={`cursor-pointer transition-all duration-300 ${
+                  viewAngle === view.id ? "border-1 " : ""
+                }`}
+                onClick={() => handleViewChange(view.id, view.zoomLevel)}
+              >
+                {view.type === "video" ? (
+                  <video
+                    src={view.src}
+                    className="w-24 h-30 object-cover"
+                    muted
+                  />
+                ) : (
+                  <div className="relative w-24 h-30 overflow-hidden">
+                    <img
+                      src={view.src}
+                      alt={view.label}
+                      className="w-full h-full object-cover hover:opacity-90"
+                      style={view.id === "front" ? {} : 
+                             view.id === "side" ? {transform: "perspective(500px) rotateY(15deg)"} : 
+                             {transform: "perspective(500px) rotateY(-15deg)"}}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -216,28 +240,25 @@ const Product = () => {
           <div className="flex items-center gap-40 mt-2">
             <h1 className="font-medium text-2xl">{productData.name}</h1>
             <Icon
-  className="cursor-pointer transition-colors duration-200"
-  size={25}
-  onClick={async () => {
-    // Optimistically toggle UI
-    const wasInWishlist = isInWishlist;
-    setIsInWishlist(!wasInWishlist);
-
-    try {
-      const result = await addToWishlist(productId);
-
-      if (!result?.success) {
-        // Revert on failure
-        setIsInWishlist(wasInWishlist);
-      }
-    } catch (error) {
-      // Revert on error
-      setIsInWishlist(wasInWishlist);
-    }
-  }}
-/>
+              className="cursor-pointer transition-colors duration-200"
+              size={25}
+              onClick={async () => {
+                // Optimistically toggle UI
+                const wasInWishlist = isInWishlist;
+                setIsInWishlist(!wasInWishlist);
+                try {
+                  const result = await addToWishlist(productId);
+                  if (!result?.success) {
+                    // Revert on failure
+                    setIsInWishlist(wasInWishlist);
+                  }
+                } catch (error) {
+                  // Revert on error
+                  setIsInWishlist(wasInWishlist);
+                }
+              }}
+            />
           </div>
-
           <div className="flex items-center gap-1 mt-2">
             {[...Array(5)].map((_, i) => (
               <img
@@ -251,7 +272,6 @@ const Product = () => {
             ))}
             <p className="pl-2">({review.length})</p>
           </div>
-
           <p>
             {currency} {productData.price}
           </p>
@@ -274,7 +294,6 @@ const Product = () => {
               ))}
             </div>
           </div>
-
           <button
             onClick={() => {
               if (media?.endsWith(".mp4")) {
@@ -287,7 +306,6 @@ const Product = () => {
           >
             ADD TO CART
           </button>
-
           <hr className="mt-8 sm:w-4/5" />
           <div className="text-sm text-gray-500 mt-5 flex flex-col gap-1">
             <p>100% Original Product.</p>
@@ -297,13 +315,11 @@ const Product = () => {
         </div>
       </div>
 
-      {/* -----Description and review Section-------- */}
+      {/* -----Description and Review Section-------- */}
       <div className="mt-20">
         <div className="flex">
-          {/* <b className="border px-5 py-3 text-sm">Description</b> */}
           <p className="border px-5 py-3 text-2xl ">Reviews </p>
         </div>
-
         <div className="flex flex-col gap-4 border px-6 py-6 text-sm text-gray-800">
           {/* Star Rating Input */}
           <div className="flex items-center gap-1 mt-2">
@@ -319,7 +335,6 @@ const Product = () => {
             ))}
             <p className="pl-2">{rating} / 5</p>
           </div>
-
           <div className="flex gap-2 items-center">
             <textarea
               onChange={(e) => setDescription(e.target.value)}
@@ -334,10 +349,7 @@ const Product = () => {
               Add Review
             </button>
           </div>
-
           <p className="py-2 border-b-2 border-gray-200">Users Reviews:</p>
-          {/* {console.log("Fetched reviews:", review)} */}
-
           {/* Display fetched reviews */}
           {review && review.length > 0 ? (
             review.map((item, index) => (
