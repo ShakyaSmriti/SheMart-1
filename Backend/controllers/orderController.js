@@ -80,7 +80,7 @@ const userOrders = async (req, res) => {
   }
 };
 
-// update order satus from admin panel
+// update order status from admin panel
 const updateStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;

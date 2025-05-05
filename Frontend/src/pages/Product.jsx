@@ -6,6 +6,8 @@ import RelatedProducts from "../components/RelatedProducts";
 import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 import axios from "axios";
 import { toast } from "react-toastify";
+import ReactImageMagnify from 'react-image-magnify';
+
 
 const Product = () => {
   const { productId } = useParams();
@@ -110,7 +112,7 @@ const Product = () => {
         }
       );
       if (res.status === 200) {
-        setReview([res.data, ...review]); // res.data is the review object
+        setReview([res.data, ...review]); 
         setDescription("");
         setRating(0);
         toast.success("Review submitted!");
@@ -123,6 +125,7 @@ const Product = () => {
       toast.error("Something went wrong. Please try again.");
     }
   };
+  
 
   // Image transform style based on view angle
   const getImageTransformStyle = () => {
@@ -169,7 +172,7 @@ const Product = () => {
         src: baseMedia,
         label: "Side View",
         type: baseMedia.endsWith(".mp4") ? "video" : "image",
-        zoomLevel: 4,
+        zoomLevel: 3,
       },
       {
         id: "back",

@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 
 const PlaceOrder = () => {
-  const [method, setMethod] = useState("cod");
+  const [method, setMethod] = useState("");
   const {
     navigate,
     backendUrl,
@@ -37,7 +37,11 @@ const PlaceOrder = () => {
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
-    // Check if cart is empty
+    if (!method) {
+      toast.error("Please select a payment method.");
+      return;
+    }
+
     if (Object.keys(cartItems).length === 0) {
       toast.error("Your cart is empty. Please add items to your cart.");
       return;
@@ -75,7 +79,6 @@ const PlaceOrder = () => {
           );
           toast.success(response.data.message);
           setCartItems({});
-          // console.log(response.data);
 
           if (response.data.success) {
             setCartItems({});
@@ -86,10 +89,11 @@ const PlaceOrder = () => {
           break;
 
         default:
+          toast.error("Selected payment method is not supported yet.");
           break;
       }
     } catch (error) {
-      console.error("Error placing order:", error); // Fix: Proper error logging
+      console.error("Error placing order:", error);
       toast.error(error.message);
     }
   };
@@ -99,7 +103,7 @@ const PlaceOrder = () => {
       onSubmit={onSubmitHandler}
       className="flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t"
     >
-      {/* ------------left side--------- */}
+      {/* ------------Left Side--------- */}
       <div className="flex flex-col gap-4 w-full sm:max-w-[480px]">
         <div className="text-xl sm:text-2xl my-3">
           <Title text1={"DELIVERY"} text2={"INFORMATION"} />
@@ -143,20 +147,18 @@ const PlaceOrder = () => {
           placeholder="Address"
           required
         />
-
         <input
           onChange={onChangeHandler}
           name="phone"
           value={formData.phone}
           className="border border-gray rounded py-1.5 px-3.5 w-full"
-          type="Number"
+          type="number"
           placeholder="Phone"
           required
         />
       </div>
 
       {/* ----------Right Side-------- */}
-
       <div className="mt-8">
         <div className="mt-8 min-w-80">
           <CartTotal />
@@ -166,22 +168,26 @@ const PlaceOrder = () => {
           <Title text1={"PAYMENT"} text2={"METHOD"} />
 
           <div className="flex gap-3 flex-col lg:flex-row">
-            {/* Stripe Payment Option */}
+            {/* Khalti Option */}
             <div
-              onClick={() => setMethod("stripe")}
+              onClick={() => setMethod("khalti")}
               className={`flex items-center gap-3 border p-2 px-3 cursor-pointer ${
-                method === "stripe" ? "border-green-400" : "border-gray-300"
+                method === "khalti" ? "border-green-400" : "border-gray-300"
               }`}
             >
               <p
                 className={`min-w-3.5 h-3.5 border rounded-full ${
-                  method === "stripe" ? "bg-green-400" : ""
+                  method === "khalti" ? "bg-green-400" : ""
                 }`}
               ></p>
-              <img className="h-5 mx-4" src={assets.stripe_logo} alt="Stripe" />
+              <img
+                className="h-10 w-10 mx-4"
+                src={assets.khalti_logo}
+                alt="Khalti"
+              />
             </div>
 
-            {/* Cash on Delivery (COD) Option */}
+            {/* COD Option */}
             <div
               onClick={() => setMethod("cod")}
               className={`flex items-center gap-3 border p-2 px-3 cursor-pointer ${
@@ -203,7 +209,7 @@ const PlaceOrder = () => {
           <p className="mt-4 text-gray-600 text-sm">
             Selected Payment Method:{" "}
             <span className="font-medium text-black">
-              {method.toUpperCase()}
+              {method ? method.toUpperCase() : "None"}
             </span>
           </p>
 
@@ -211,7 +217,6 @@ const PlaceOrder = () => {
             <button
               type="submit"
               className="bg-black text-white px-16 py-3 text-sm"
-              onClick={() => console.log("Order placed with payment:", method)}
             >
               PLACE ORDER
             </button>
