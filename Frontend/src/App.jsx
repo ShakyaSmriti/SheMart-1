@@ -13,6 +13,11 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import SearchBar from "./components/SearchBar";
 import Profile from "./pages/Profile";
+import Khalti from "./pages/khalti";
+import KhaltiSuccess from "./pages/khaltisuccess";
+
+
+
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -38,6 +43,8 @@ const App = () => {
         <Route path="/forget-password" element={<ForgetPassword />} />
         <Route path="/wishlist" element={<WishList />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/khalti" element={<Khalti />} />
+        <Route path="/khaltiSuccess" element={<KhaltiSuccess />} />
       </Routes>
       <Footer />
     </div>

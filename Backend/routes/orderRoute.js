@@ -12,7 +12,7 @@ import authUser from "./../middleware/Auth.js";
 
 const orderRouter = express.Router();
 
-// Amdmin features
+// Admin features
 orderRouter.post("/list", adminAuth, allOrders);
 orderRouter.post("/status", adminAuth, updateStatus);
 orderRouter.post("/delete", adminAuth, updateStatus);

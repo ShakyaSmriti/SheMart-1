@@ -71,6 +71,18 @@ const PlaceOrder = () => {
       };
 
       switch (method) {
+        case "khalti":
+          // Redirect to Khalti payment page with order data
+          const amount = getCartAmount() + delivery_fee;
+          navigate("/khalti", { 
+            state: { 
+              amount: amount,
+              purpose: "SheMart Order",
+              orderData: orderData
+            } 
+          });
+          break;
+        
         case "cod":
           const response = await axios.post(
             backendUrl + "/api/order/place",

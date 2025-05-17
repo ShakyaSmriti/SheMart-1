@@ -113,7 +113,14 @@ const adminLogin = async (req, res) => {
       email === process.env.ADMIN_EMAIL &&
       password === process.env.ADMIN_PASSWORD
     ) {
-      const token = jwt.sign(email + password, process.env.JWT_SECRET);
+      // Create a token with admin information
+      const token = jwt.sign(
+        { id: "admin", role: "admin", email: process.env.ADMIN_EMAIL },
+        process.env.JWT_SECRET
+      );
+      
+      console.log("Generated admin token:", token);
+      
       res.status(200).json({
         success: true,
         message: "Admin logged in successfully.",

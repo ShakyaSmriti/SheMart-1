@@ -15,6 +15,7 @@ const addProduct = async (req, res) => {
     } = req.body;
 
     console.log("Request Body:", req.body);
+    console.log("Request Files:", req.files);
 
     if (!name || !description || !price || !category) {
       return res.status(400).json({
@@ -23,63 +24,103 @@ const addProduct = async (req, res) => {
       });
     }
 
+    // Check if req.files exists
+    if (!req.files) {
+      console.log("No files were uploaded");
+      req.files = { image: [], video: [] };
+    }
+
     // if only image[0] or video[o] has image than store in image otherwise ignore
     const image = req.files.image && req.files?.image?.[0];
     const video = req.files.video && req.files?.video?.[0];
 
+    console.log("Image file:", image);
+    console.log("Video file:", video);
+
     // uploading images and video in cloudinary to store in mongoodb
-    const images = [image].filter((item) => item !== undefined);
-    const videos = [video].filter((item) => item !== undefined);
+    const images = image ? [image] : [];
+    const videos = video ? [video] : [];
 
-    let imagesUrl = await Promise.all(
-      images.map(async (item) => {
-        let result = await cloudinary.uploader.upload(item.path, {
-          resource_type: "image",
-        });
-        return result.secure_url;
-      })
-    );
+    let imagesUrl = [];
+    let videoUrl = [];
 
-    let videoUrl = await Promise.all(
-      videos.map(async (item) => {
-        let result = await cloudinary.uploader.upload(item.path, {
-          resource_type: "video",
-        });
-        return result.secure_url;
-      })
-    );
+    try {
+      if (images.length > 0) {
+        imagesUrl = await Promise.all(
+          images.map(async (item) => {
+            console.log("Uploading image:", item.path);
+            let result = await cloudinary.uploader.upload(item.path, {
+              resource_type: "image",
+            });
+            console.log("Cloudinary image result:", result);
+            return result.secure_url;
+          })
+        );
+      }
 
-    // console.log("Request Files:", image, video);
+      if (videos.length > 0) {
+        videoUrl = await Promise.all(
+          videos.map(async (item) => {
+            console.log("Uploading video:", item.path);
+            let result = await cloudinary.uploader.upload(item.path, {
+              resource_type: "video",
+            });
+            console.log("Cloudinary video result:", result);
+            return result.secure_url;
+          })
+        );
+      }
+    } catch (cloudinaryError) {
+      console.error("Cloudinary upload error:", cloudinaryError);
+      return res.status(500).json({
+        success: false,
+        message: "Error uploading files to Cloudinary",
+        error: cloudinaryError.message,
+      });
+    }
+
     console.log("Images URL:", imagesUrl);
     console.log("Videos URL:", videoUrl);
 
     // Saving data in mongodb
-    const productData = {
-      name,
-      description,
-      category,
-      price: Number(price),
-      subCategory,
-      bestseller: bestseller === "true" ? true : false,
-      sizes: JSON.parse(sizes),
-      image: imagesUrl,
-      video: videoUrl,
-      date: Date.now(),
-    };
+    try {
+      const productData = {
+        name,
+        description,
+        category,
+        price: Number(price),
+        subCategory,
+        bestseller: bestseller === "true" ? true : false,
+        sizes: JSON.parse(sizes),
+        image: imagesUrl,
+        video: videoUrl,
+        date: Date.now(),
+      };
 
-    const product = new productModel(productData);
-    await product.save();
+      console.log("Product data to save:", productData);
 
-    res.status(201).json({
-      success: true,
-      message: "Product added successfully.",
-    });
+      const product = new productModel(productData);
+      await product.save();
+
+      res.status(201).json({
+        success: true,
+        message: "Product added successfully.",
+      });
+    } catch (dbError) {
+      console.error("Database save error:", dbError);
+      return res.status(500).json({
+        success: false,
+        message: "Error saving product to database",
+        error: dbError.message,
+      });
+    }
   } catch (error) {
-    console.error("Error in addProduct:", error.message);
+    console.error("Error in addProduct:", error);
     res.status(500).json({
       success: false,
       message: "An unexpected server error occurred.",
       error: error.message,
+      stack: error.stack,
     });
   }
 };
@@ -192,7 +233,7 @@ const listProduct = async (req, res) => {
 const removeProduct = async (req, res) => {
   try {
     await productModel.findByIdAndDelete(req.body.id);
-    res.json({ sucess: true, message: "product Removed" });
+    res.json({ success: true, message: "product Removed" });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
