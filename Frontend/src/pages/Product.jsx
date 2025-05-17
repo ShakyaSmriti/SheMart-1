@@ -6,7 +6,7 @@ import RelatedProducts from "../components/RelatedProducts";
 import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 import axios from "axios";
 import { toast } from "react-toastify";
-import ReactImageMagnify from 'react-image-magnify';
+
 
 
 const Product = () => {
