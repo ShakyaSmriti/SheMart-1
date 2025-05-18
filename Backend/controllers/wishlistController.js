@@ -3,7 +3,7 @@ import userModel from "../models/userModel.js";
 // function to add wishlist product
 const addWishlist = async (req, res) => {
   const { productId } = req.body;
-  const userId = req.user?.userId;
+  const userId = req.user?.id;
 
   // console.log(`Product Id${productId}`);
 
@@ -61,7 +61,7 @@ const addWishlist = async (req, res) => {
 };
 
 const getWishlist = async (req, res) => {
-  const userId = req.user?.userId;
+  const userId = req.user?.id;
   // console.log(`userId: ${userId}`);
 
   if (!userId) {

@@ -5,7 +5,7 @@ import userModel from "../models/userModel.js";
 const addToCart = async (req, res) => {
   try {
     const { itemId, size, quantity } = req.body;
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId || !itemId || !size || quantity == null) {
       return res.status(400).json({
@@ -48,7 +48,7 @@ const addToCart = async (req, res) => {
 const updateCart = async (req, res) => {
   try {
     const { itemId, size, quantity } = req.body;
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     // console.log("User ID from middleware:", userId);
     // console.log("Request Body:", req.body);
@@ -93,7 +93,7 @@ const updateCart = async (req, res) => {
 // Get user cart data
 const getUserCart = async (req, res) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
     // console.log(userId);
 
     if (!userId) {

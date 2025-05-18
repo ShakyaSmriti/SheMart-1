@@ -24,9 +24,13 @@ const Profile = () => {
         return;
       }
 
+      console.log("Fetching profile with token:", token);
+      
       const response = await axios.get(`${backendUrl}/api/user/profile`, {
         headers: { token },
       });
+
+      console.log("Profile response:", response.data);
 
       if (response.data.success) {
         const fetchedUser = response.data.user;
@@ -42,6 +46,7 @@ const Profile = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
+      console.error("Profile fetch error:", error);
       toast.error(
         error.response?.data?.message || "Failed to fetch profile data"
       );

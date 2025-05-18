@@ -1,11 +1,17 @@
-const User = require("../models/User");
+import User from "../models/User.js";
 
 // Get user profile
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    // Check how the user ID is stored in the decoded token
+    const userId = req.user.id || req.user.userId;
+    
+    const user = await User.findById(userId).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ 
+        success: false,
+        message: "User not found" 
+      });
     }
 
     res.json({
@@ -13,8 +19,12 @@ const getUserProfile = async (req, res) => {
       user,
     });
   } catch (error) {
-    res.status(500).json({ message: "Server Error" });
+    console.error("Profile fetch error:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server Error" 
+    });
   }
 };
 
-module.exports = { getUserProfile };
+export { getUserProfile };

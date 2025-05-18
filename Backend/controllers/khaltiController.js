@@ -14,7 +14,7 @@ export const initiatePayment = async (req, res) => {
       purchase_order_id,
       purchase_order_name,
       customer_info,
-      orderData
+      orderData,
     } = req.body;
 
     // Store orderData in session for later retrieval
@@ -27,7 +27,7 @@ export const initiatePayment = async (req, res) => {
       amount,
       purchase_order_id,
       purchase_order_name,
-      customer_info
+      customer_info,
     };
 
     console.log("Initiating Khalti payment with payload:", payload);
@@ -38,19 +38,22 @@ export const initiatePayment = async (req, res) => {
       {
         headers: {
           Authorization: `Key ${process.env.KHALTI_SECRET_KEY}`,
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
 
     console.log("Khalti response:", response.data);
     return res.json(response.data);
   } catch (error) {
-    console.error("Khalti initiate payment error:", error.response?.data || error.message);
+    console.error(
+      "Khalti initiate payment error:",
+      error.response?.data || error.message
+    );
     return res.status(500).json({
       success: false,
       message: "Failed to initiate payment",
-      error: error.response?.data || error.message
+      error: error.response?.data || error.message,
     });
   }
 };
@@ -59,12 +62,12 @@ export const initiatePayment = async (req, res) => {
 export const verifyPayment = async (req, res) => {
   try {
     const { pidx } = req.body;
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!pidx) {
       return res.status(400).json({
         success: false,
-        message: "Payment verification failed: Missing pidx"
+        message: "Payment verification failed: Missing pidx",
       });
     }
 
@@ -77,8 +80,8 @@ export const verifyPayment = async (req, res) => {
       {
         headers: {
           Authorization: `Key ${process.env.KHALTI_SECRET_KEY}`,
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
 
@@ -93,7 +96,7 @@ export const verifyPayment = async (req, res) => {
       if (!orderData) {
         return res.status(400).json({
           success: false,
-          message: "Order data not found in session"
+          message: "Order data not found in session",
         });
       }
 
@@ -106,7 +109,7 @@ export const verifyPayment = async (req, res) => {
         address: orderData.address,
         payment: true,
         date: Date.now(),
-        transactionId: pidx
+        transactionId: pidx,
       });
 
       await newOrder.save();
@@ -118,20 +121,23 @@ export const verifyPayment = async (req, res) => {
       return res.json({
         success: true,
         message: "Payment verified and order created successfully",
-        order: newOrder
+        order: newOrder,
       });
     } else {
       return res.status(400).json({
         success: false,
-        message: `Payment verification failed: ${paymentData.status}`
+        message: `Payment verification failed: ${paymentData.status}`,
       });
     }
   } catch (error) {
-    console.error("Khalti verify payment error:", error.response?.data || error.message);
+    console.error(
+      "Khalti verify payment error:",
+      error.response?.data || error.message
+    );
     return res.status(500).json({
       success: false,
       message: "Failed to verify payment",
-      error: error.response?.data || error.message
+      error: error.response?.data || error.message,
     });
   }
 };

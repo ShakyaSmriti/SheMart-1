@@ -275,7 +275,7 @@ const resetpassword = async (req, res) => {
 // Get user profile route
 const getProfile = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const user = await userModel.findById(userId).select("-password");
     if (!user) {
@@ -293,7 +293,7 @@ const getProfile = async (req, res) => {
 // Update user profile route
 const updateUserProfile = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const { name, email, gender, address, phone, dateOfBirth } = req.body;
 
     const formattedDateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;

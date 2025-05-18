@@ -7,7 +7,7 @@ import userModel from "../models/userModel.js";
 const placeOrder = async (req, res) => {
   try {
     const { items, amount, address } = req.body;
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     // Check if user is authenticated
     if (!userId) {
@@ -70,7 +70,7 @@ const allOrders = async (req, res) => {
 // user order data for frontend
 const userOrders = async (req, res) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     const orders = await orderModel.find({ userId });
     return res.json({ success: true, orders });
@@ -121,7 +121,7 @@ const deleteOrder = async (req, res) => {
 const cancelOrder = async (req, res) => {
   try {
     const { orderId } = req.body;
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!orderId) {
       return res
@@ -131,7 +131,7 @@ const cancelOrder = async (req, res) => {
 
     // Find the order
     const order = await orderModel.findById(orderId);
-    
+
     if (!order) {
       return res
         .status(404)
@@ -173,5 +173,5 @@ export {
   userOrders,
   updateStatus,
   deleteOrder,
-  cancelOrder
+  cancelOrder,
 };
