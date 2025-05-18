@@ -38,6 +38,9 @@ const Khalti = () => {
 
         console.log("Sending payment request to backend:", payload);
 
+        // Store orderData in localStorage as a fallback
+        localStorage.setItem('khaltiOrderData', JSON.stringify(orderData));
+
         const response = await fetch(`${backendUrl}/api/khalti/initiate`, {
           method: "POST",
           headers: { 

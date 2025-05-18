@@ -6,6 +6,7 @@ const CartTotal = () => {
 
   return (
     <div className="flex flex-col gap-3 text-gray-700">
+      <h2 className="text-xl font-medium mb-2">Order Summary</h2>
       <div className="flex justify-between">
         <p>Subtotal</p>
         <p>

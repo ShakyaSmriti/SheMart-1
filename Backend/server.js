@@ -42,9 +42,12 @@ app.set("views", path.join(__dirname, "views"));
 // Session setup
 app.use(session({
   secret: process.env.SESSION_SECRET || 'khalti-session-secret',
-  resave: false,
+  resave: true,
   saveUninitialized: true,
-  cookie: { secure: process.env.NODE_ENV === 'production' }
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
 }));
 
 // Routes

@@ -23,25 +23,60 @@ const KhaltiSuccess = () => {
 
         console.log("Verifying payment with pidx:", pidx);
 
-        const response = await fetch(`${backendUrl}/api/khalti/verify`, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "token": token
-          },
-          body: JSON.stringify({ pidx }),
-        });
+        // Try POST request first
+        try {
+          // Get stored order data as fallback
+          const storedOrderData = localStorage.getItem('khaltiOrderData');
+          
+          const response = await fetch(`${backendUrl}/api/khalti/verify`, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "token": token
+            },
+            body: JSON.stringify({ 
+              pidx,
+              // Include order data as fallback if session fails
+              orderData: storedOrderData ? JSON.parse(storedOrderData) : undefined
+            }),
+          });
 
-        const data = await response.json();
-        console.log("Verification response:", data);
+          const data = await response.json();
+          console.log("Verification response:", data);
 
-        if (data.success) {
-          toast.success("Payment successful! Your order has been placed.");
-          setCartItems({});
-          navigate("/orders");
-        } else {
-          toast.error(data.message || "Payment verification failed");
-          navigate("/place-order");
+          if (data.success) {
+            // Clear stored order data
+            localStorage.removeItem('khaltiOrderData');
+            
+            toast.success("Payment successful! Your order has been placed.");
+            setCartItems({});
+            navigate("/orders");
+          } else {
+            toast.error(data.message || "Payment verification failed");
+            navigate("/place-order");
+          }
+        } catch (postError) {
+          console.error("POST request failed, trying GET:", postError);
+          
+          // If POST fails, try GET as fallback
+          const response = await fetch(`${backendUrl}/api/khalti/verify?pidx=${pidx}`, {
+            method: "GET",
+            headers: { 
+              "token": token
+            }
+          });
+
+          const data = await response.json();
+          console.log("GET Verification response:", data);
+
+          if (data.success) {
+            toast.success("Payment successful! Your order has been placed.");
+            setCartItems({});
+            navigate("/orders");
+          } else {
+            toast.error(data.message || "Payment verification failed");
+            navigate("/place-order");
+          }
         }
       } catch (error) {
         console.error("Error verifying payment:", error);

@@ -7,7 +7,8 @@ const router = express.Router();
 // Initiate Khalti payment
 router.post("/initiate", verifyToken, initiatePayment);
 
-// Verify Khalti payment
+// Verify Khalti payment - support both POST and GET
 router.post("/verify", verifyToken, verifyPayment);
+router.get("/verify", verifyToken, verifyPayment);
 
 export default router;

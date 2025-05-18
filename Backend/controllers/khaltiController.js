@@ -20,6 +20,15 @@ export const initiatePayment = async (req, res) => {
     // Store orderData in session for later retrieval
     req.session.orderData = orderData;
     req.session.purchase_order_id = purchase_order_id;
+    
+    // Force session save to ensure data is stored immediately
+    req.session.save(err => {
+      if (err) {
+        console.error("Error saving session:", err);
+      } else {
+        console.log("Session saved successfully with orderData:", req.session.orderData);
+      }
+    });
 
     const payload = {
       return_url,
@@ -61,7 +70,16 @@ export const initiatePayment = async (req, res) => {
 // Verify Khalti payment
 export const verifyPayment = async (req, res) => {
   try {
-    const { pidx } = req.body;
+    // Handle both GET and POST requests
+    let pidx;
+    if (req.method === 'GET') {
+      // For GET requests, get pidx from query parameters
+      pidx = req.query.pidx;
+    } else {
+      // For POST requests, get pidx from request body
+      pidx = req.body.pidx;
+    }
+    
     const userId = req.user?.id;
 
     if (!pidx) {
@@ -72,6 +90,7 @@ export const verifyPayment = async (req, res) => {
     }
 
     console.log("Verifying Khalti payment with pidx:", pidx);
+    console.log("Session data:", req.session);
 
     // Verify payment with Khalti
     const response = await axios.post(
@@ -88,18 +107,21 @@ export const verifyPayment = async (req, res) => {
     const paymentData = response.data;
     console.log("Khalti verification response:", paymentData);
 
+    // Get order data from session or request body (fallback)
+    const orderData = req.session.orderData || req.body.orderData;
+    console.log("Order data from session or request:", orderData);
+
+    if (!orderData) {
+      // If both session data and fallback are missing, return error
+      return res.status(400).json({
+        success: false,
+        message: "Order data not found in session or request. Please try again.",
+        sessionId: req.sessionID,
+        sessionExists: !!req.session
+      });
+    }
+
     if (paymentData.status === "Completed") {
-      // Get order data from session
-      const orderData = req.session.orderData;
-      const purchase_order_id = req.session.purchase_order_id;
-
-      if (!orderData) {
-        return res.status(400).json({
-          success: false,
-          message: "Order data not found in session",
-        });
-      }
-
       // Create order in database
       const newOrder = new orderModel({
         userId,
@@ -117,6 +139,9 @@ export const verifyPayment = async (req, res) => {
       // Clear session data
       delete req.session.orderData;
       delete req.session.purchase_order_id;
+      
+      // Save session changes
+      req.session.save();
 
       return res.json({
         success: true,
