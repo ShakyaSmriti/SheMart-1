@@ -14,7 +14,7 @@ const List = ({ token }) => {
     try {
       const response = await axios.get(`${backendUrl}/api/product/all`);
 
-      console.log(response.data);
+      // console.log(response.data);
       if (response.data.success) {
         setList(response.data.products || []);
       } else {
@@ -42,7 +42,7 @@ const List = ({ token }) => {
       setList((prevList) => prevList.filter((item) => item._id !== id));
 
       const response = await axios.post(
-        `${backendUrl}/api/product/remove`,
+        `${backendUrl}/api/product/delete`,
         { id },
         { headers: { token } } // Ensure correct header format
       );

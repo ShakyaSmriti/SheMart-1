@@ -237,7 +237,7 @@ const Product = () => {
             <h1 className="font-medium text-2xl">{productData.name}</h1>
             <Icon
               className={`cursor-pointer transition-colors duration-200 ${
-                isInWishlist ? 'text-red-500' : 'text-gray-700'
+                isInWishlist ? "text-red-500" : "text-gray-700"
               }`}
               size={25}
               onClick={() => addToWishlist(productId)}

@@ -1,6 +1,7 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import orderModel from "../models/orderModel.js";
+import userModel from "../models/userModel.js";
 
 dotenv.config();
 
@@ -135,6 +136,13 @@ export const verifyPayment = async (req, res) => {
       });
 
       await newOrder.save();
+
+      // Get user data for email
+      const user = await userModel.findById(userId);
+      if (user) {
+        // Send order confirmation email
+        sendOrderConfirmationEmail(user, newOrder);
+      }
 
       // Clear session data
       delete req.session.orderData;

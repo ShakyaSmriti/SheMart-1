@@ -84,17 +84,19 @@ const Orders = () => {
               className="flex flex-col md:flex-row justify-between border p-5 rounded-sm"
             >
               <div className="flex flex-col md:flex-row md:w-1/2 gap-5">
-                {item.image ? (
+                {item.video?.length > 0 ? (
+                  <video
+                    className="w-16 sm:w-20"
+                    src={item.video[0]}
+                    autoPlay
+                    loop
+                    muted
+                  />
+                ) : item.image?.length > 0 ? (
                   <img
-                    className="w-full md:w-32 h-32 object-cover"
+                    className="w-16 sm:w-20"
                     src={item.image[0]}
                     alt={item.name}
-                  />
-                ) : item.video ? (
-                  <video
-                    className="w-full md:w-32 h-32 object-cover"
-                    src={item.video}
-                    controls
                   />
                 ) : (
                   <p>No media available</p>
@@ -121,9 +123,7 @@ const Orders = () => {
 
                   <p className="mt-1">
                     Payment:{" "}
-                    <span className="text-gray-400">
-                      {item.paymentMethod}
-                    </span>
+                    <span className="text-gray-400">{item.paymentMethod}</span>
                   </p>
                 </div>
               </div>
@@ -152,7 +152,7 @@ const Orders = () => {
                       Track Order
                     </button>
                   )}
-                  
+
                   {canCancelOrder(item.status) && (
                     <button
                       onClick={() => handleCancelOrder(item.orderId)}

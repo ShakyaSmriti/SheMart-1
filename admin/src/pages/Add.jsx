@@ -34,6 +34,7 @@ const Add = ({ token }) => {
       formData.append("name", name);
       formData.append("description", description);
       formData.append("price", price);
+      formData.append("stock", stock);
       formData.append("category", category);
       formData.append("subCategory", subCategory);
       formData.append("bestseller", bestseller);
@@ -54,6 +55,7 @@ const Add = ({ token }) => {
         setName("");
         setDescription("");
         setPrice("");
+        setStock("");
         setCategory("");
         setSubCategory("");
         setBestseller(false);
@@ -247,7 +249,10 @@ const Add = ({ token }) => {
         </label>
       </div>
 
-      <button type="submit" className="w-28 py-3 mt-4 bg-black text-white">
+      <button
+        type="submit"
+        className="w-28 py-3 mt-4 bg-black text-white cursor-pointer"
+      >
         ADD
       </button>
     </form>

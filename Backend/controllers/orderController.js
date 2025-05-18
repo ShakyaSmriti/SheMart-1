@@ -2,6 +2,10 @@
 
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // function to place an order using COD method
 const placeOrder = async (req, res) => {
@@ -24,7 +28,11 @@ const placeOrder = async (req, res) => {
       });
     }
 
-    // console.log("Order data:", req.body);
+    // Get user data for email
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
 
     const orderData = {
       userId,
@@ -42,6 +50,9 @@ const placeOrder = async (req, res) => {
 
     // Clear user's cart
     await userModel.findByIdAndUpdate(userId, { cartData: {} });
+
+    // Send order confirmation email
+    sendOrderConfirmationEmail(user, newOrder);
 
     // Send success response
     return res
@@ -166,6 +177,85 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+const sendOrderConfirmationEmail = async (user, order) => {
+  try {
+    // Create transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER || "shakyasmriti368@gmail.com",
+        pass: process.env.EMAIL_PASS || "uqjr khpg yxya lsfv",
+      },
+    });
+
+    // Format order items for email
+    const itemsList = order.items.map(item => 
+      `<tr>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.name}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.size}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.quantity}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">$${item.price}</td>
+      </tr>`
+    ).join('');
+
+    // Email content
+    const mailOptions = {
+      from: '"SheMart" <noreply@shemart.com>',
+      to: user.email,
+      subject: "Order Confirmation - SheMart",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background-color: #f8f8f8; padding: 20px; text-align: center;">
+            <h1 style="color: #333;">Thank You for Your Order!</h1>
+            <p>Order #${order._id}</p>
+          </div>
+          
+          <div style="padding: 20px;">
+            <h2>Order Details</h2>
+            <p><strong>Date:</strong> ${new Date(order.date).toLocaleDateString()}</p>
+            <p><strong>Payment Method:</strong> ${order.paymentMethod}</p>
+            <p><strong>Total Amount:</strong> $${order.amount}</p>
+            
+            <h3>Shipping Address</h3>
+            <p>${order.address.street}, ${order.address.city}, ${order.address.state} ${order.address.zipCode}</p>
+            
+            <h3>Items Ordered</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f2f2f2;">
+                  <th style="padding: 8px; text-align: left;">Product</th>
+                  <th style="padding: 8px; text-align: left;">Size</th>
+                  <th style="padding: 8px; text-align: left;">Quantity</th>
+                  <th style="padding: 8px; text-align: left;">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsList}
+              </tbody>
+            </table>
+            
+            <div style="margin-top: 30px;">
+              <p>Thank you for shopping with SheMart. If you have any questions about your order, please contact our customer service.</p>
+            </div>
+          </div>
+          
+          <div style="background-color: #333; color: white; padding: 15px; text-align: center;">
+            <p>&copy; ${new Date().getFullYear()} SheMart. All rights reserved.</p>
+          </div>
+        </div>
+      `
+    };
+
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Order confirmation email sent:", info.response);
+    return true;
+  } catch (error) {
+    console.error("Error sending order confirmation email:", error);
+    return false;
+  }
+};
+
 export {
   placeOrder,
   placeOrderKhalti,
@@ -174,4 +264,5 @@ export {
   updateStatus,
   deleteOrder,
   cancelOrder,
+  sendOrderConfirmationEmail,
 };

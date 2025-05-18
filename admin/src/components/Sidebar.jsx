@@ -7,8 +7,8 @@ import { FolderPlus } from "lucide-react";
 
 const Sidebar = () => {
   return (
-    <div className="w-[18%] min-h-screen border-r-1 border-gray-300">
-      <div className="flex flex-col gap-4 pt-6 pl-[20%] text-[15px]">
+    <div className="w-[18%] min-h-screen border-r-1 border-gray-300 ">
+      <div className="flex flex-col gap-4 pt-6 pl-[20%] text-[15px] ">
         <NavLink
           className="flex items-center gap-3 border border-gray-300 border-r-0 px-3 py-2 rounded-1"
           to="/add"

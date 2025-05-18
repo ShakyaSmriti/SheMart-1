@@ -2,122 +2,96 @@ import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
 import productModel from "../models/ProductModel.js";
 
-// Function for add product
+//function for add product
 const addProduct = async (req, res) => {
   try {
-    console.log("Add product request received");
-    console.log("Request body:", req.body);
-    console.log("Files:", req.files);
-
-    if (req.user.role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Only admins can add products",
-      });
-    }
-
     const {
       name,
       description,
       price,
-      stock,
       category,
       subCategory,
-      bestseller,
       sizes,
+      stock,
+      bestseller,
     } = req.body;
 
-    if (!name || !description || !price || !category) {
+    // Validate required fields
+    if (!name || !description || !price || !category || !sizes) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields",
+        message:
+          "Required fields: name, description, price, category, and sizes.",
       });
     }
 
-    let parsedSizes = sizes;
-    if (typeof sizes === "string") {
-      try {
-        parsedSizes = JSON.parse(sizes);
-      } catch (error) {
-        console.error("Error parsing sizes:", error);
-        return res.status(400).json({
-          success: false,
-          message: "Invalid sizes format",
-        });
-      }
+    // Extract image and video from req.files safely
+    const imageFile = req?.files?.image?.[0];
+    const videoFile = req?.files?.video?.[0];
+
+    // Upload image if provided
+    const imagesUrl = imageFile
+      ? [
+          await cloudinary.uploader
+            .upload(imageFile.path, {
+              resource_type: "image",
+            })
+            .then((res) => res.secure_url),
+        ]
+      : [];
+
+    // Upload video if provided
+    const videoUrl = videoFile
+      ? [
+          await cloudinary.uploader
+            .upload(videoFile.path, {
+              resource_type: "video",
+            })
+            .then((res) => res.secure_url),
+        ]
+      : [];
+
+    // Parse sizes if it's a JSON string
+    let parsedSizes;
+    try {
+      parsedSizes = typeof sizes === "string" ? JSON.parse(sizes) : sizes;
+      if (!Array.isArray(parsedSizes)) throw new Error();
+    } catch {
+      return res.status(400).json({
+        success: false,
+        message: "Sizes must be a valid JSON array.",
+      });
     }
 
-    let imageUrls = [];
-    let videoUrls = [];
-
-    if (req.files && req.files.image) {
-      const imageFile = Array.isArray(req.files.image)
-        ? req.files.image
-        : [req.files.image];
-
-      for (const file of imageFile) {
-        try {
-          const imagePath = `/uploads/${Date.now()}-${file.name}`;
-          await file.mv(`./public${imagePath}`);
-          imageUrls.push(imagePath);
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          return res.status(500).json({
-            success: false,
-            message: "Error uploading image",
-            error: error.message,
-          });
-        }
-      }
-    }
-
-    if (req.files && req.files.video) {
-      const videoFile = Array.isArray(req.files.video)
-        ? req.files.video
-        : [req.files.video];
-
-      for (const file of videoFile) {
-        try {
-          const videoPath = `/uploads/${Date.now()}-${file.name}`;
-          await file.mv(`./public${videoPath}`);
-          videoUrls.push(videoPath);
-        } catch (error) {
-          console.error("Error uploading video:", error);
-          return res.status(500).json({
-            success: false,
-            message: "Error uploading video",
-            error: error.message,
-          });
-        }
-      }
-    }
-
-    const newProduct = new productModel({
+    // Construct product object
+    const productData = {
       name,
       description,
-      price,
-      stock: stock || 10,
       category,
+      price: Number(price),
+      stock: Number(stock),
       subCategory: subCategory || "",
       bestseller: bestseller === "true" || bestseller === true,
-      sizes: parsedSizes || [],
-      image: imageUrls,
-      video: videoUrls,
-      date: Date.now(),
-    });
+      sizes: parsedSizes,
+      image: imagesUrl,
+      video: videoUrl,
+      date: new Date(),
+    };
 
-    await newProduct.save();
+    // Save product
+    const product = new productModel(productData);
+    await product.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "Product added successfully",
-      product: newProduct,
+      message: "Product added successfully.",
+      product,
     });
   } catch (error) {
-    console.error("Error adding product:", error);
-    res.status(500).json({
+    console.error("Error in addProduct:", error);
+    return res.status(500).json({
       success: false,
-      message: "Error adding product",
+      message: "An unexpected server error occurred.",
       error: error.message,
     });
   }
@@ -183,37 +157,92 @@ const getProductById = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
+    const {
+      name,
+      description,
+      price,
+      category,
+      subCategory,
+      sizes,
+      bestseller,
+      stock,
+    } = req.body;
 
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid product ID format",
-      });
-    }
+    console.log("Product Id:", req.params);
+    console.log("Request Body:", req.body);
 
-    const updates = req.body;
-
-    const product = await productModel.findByIdAndUpdate(id, updates, {
-      new: true,
-    });
-
+    // Fetch the existing product
+    const product = await productModel.findById(id);
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
+
+    const updateFields = {};
+
+    if (name) updateFields.name = name;
+    if (description) updateFields.description = description;
+    if (price) updateFields.price = Number(price);
+    if (stock) updateFields.stock = Number(stock);
+    if (category) updateFields.category = category;
+    if (subCategory) updateFields.subCategory = subCategory;
+    if (sizes) updateFields.sizes = JSON.parse(sizes);
+    if (bestseller !== undefined)
+      updateFields.bestseller = bestseller === "true";
+
+    // Handle image and video uploads if files are provided
+    const imageFile = req.files?.image?.[0];
+    const videoFile = req.files?.video?.[0];
+
+    const images = [imageFile].filter((item) => item !== undefined);
+    const videos = [videoFile].filter((item) => item !== undefined);
+
+    if (images.length > 0) {
+      const uploadedImages = await Promise.all(
+        images.map(async (item) => {
+          let result = await cloudinary.uploader.upload(item.path, {
+            folder: "products/images",
+            resource_type: "image",
+          });
+          return result.secure_url;
+        })
+      );
+      updateFields.image = [...(product.image || []), ...uploadedImages];
+    }
+
+    if (videos.length > 0) {
+      const uploadedVideos = await Promise.all(
+        videos.map(async (item) => {
+          let result = await cloudinary.uploader.upload(item.path, {
+            folder: "products/videos",
+            resource_type: "video",
+          });
+          return result.secure_url;
+        })
+      );
+      updateFields.video = [...(product.video || []), ...uploadedVideos];
+    }
+
+    // Update product only with modified fields
+    const updatedProduct = await productModel.findByIdAndUpdate(
+      id,
+      updateFields,
+      {
+        new: true,
+      }
+    );
 
     res.status(200).json({
       success: true,
-      message: "Product updated successfully",
-      product,
+      message: "Product updated successfully.",
+      product: updatedProduct,
     });
   } catch (error) {
-    console.error("Error updating product:", error);
+    console.error("Error updating product:", error.message);
     res.status(500).json({
       success: false,
-      message: "Error updating product",
+      message: "An unexpected server error occurred.",
       error: error.message,
     });
   }
@@ -222,18 +251,39 @@ const updateProduct = async (req, res) => {
 // Function for remove product with validation
 const removeProduct = async (req, res) => {
   try {
-    const { id } = req.params;
+    await productModel.findByIdAndDelete(req.body.id);
+    res.json({ success: true, message: "product Removed" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
 
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid product ID format",
+// function to manage stock levels in real time (increase or decrease)
+const manageStock = async (req, res) => {
+  try {
+    const { productId, newQuantity, prevQuantity = 0 } = req.body;
+
+    // Calculate quantity difference (new - old)
+    const quantityDiff = newQuantity - prevQuantity;
+
+    // If quantityDiff is 0, no stock change is needed
+    if (quantityDiff === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No stock change needed",
       });
     }
 
-    const product = await productModel.findByIdAndDelete(id);
+    const stockChange = -quantityDiff; // Opposite direction of quantity change
 
-    if (!product) {
+    const updatedProduct = await productModel.findByIdAndUpdate(
+      productId,
+      { $inc: { stock: stockChange } },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
       return res.status(404).json({
         success: false,
         message: "Product not found",
@@ -242,13 +292,14 @@ const removeProduct = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Product removed successfully",
+      message: "Stock updated ",
+      product: updatedProduct,
     });
   } catch (error) {
-    console.error("Error removing product:", error);
+    console.error("Error managing stock:", error.message);
     res.status(500).json({
       success: false,
-      message: "Error removing product",
+      message: "An unexpected server error occurred.",
       error: error.message,
     });
   }
@@ -260,4 +311,5 @@ export {
   getProductById,
   updateProduct,
   removeProduct,
+  manageStock,
 };
