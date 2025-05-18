@@ -15,19 +15,25 @@ import SearchBar from "./components/SearchBar";
 import Profile from "./pages/Profile";
 import Khalti from "./pages/khalti";
 import KhaltiSuccess from "./pages/khaltisuccess";
-
-
-
-
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import ForgetPassword from "./pages/ForgetPassword";
 import WishList from "./pages/WishList";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const App = () => {
   return (
     <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Navbar />
       <SearchBar />
       <Routes>
@@ -38,9 +44,9 @@ const App = () => {
         <Route path="/product/:productId" element={<Product />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
         <Route path="/place-order" element={<PlaceOrder />} />
         <Route path="/orders" element={<Orders />} />
-        <Route path="/forget-password" element={<ForgetPassword />} />
         <Route path="/wishlist" element={<WishList />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/khalti" element={<Khalti />} />

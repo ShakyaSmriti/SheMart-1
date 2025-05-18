@@ -5,6 +5,7 @@ import {
   allOrders,
   userOrders,
   updateStatus,
+  cancelOrder
 } from "../controllers/orderController.js";
 
 import adminAuth from "./../middleware/adminAuth.js";
@@ -23,5 +24,6 @@ orderRouter.post("/khalti", authUser, placeOrderKhalti);
 
 // User features
 orderRouter.get("/userorders", authUser, userOrders);
+orderRouter.post("/cancel", authUser, cancelOrder);
 
 export default orderRouter;

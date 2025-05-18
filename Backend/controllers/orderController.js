@@ -117,6 +117,55 @@ const deleteOrder = async (req, res) => {
   }
 };
 
+// Cancel an order
+const cancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const userId = req.user?.userId;
+
+    if (!orderId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Order ID is required" });
+    }
+
+    // Find the order
+    const order = await orderModel.findById(orderId);
+    
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+
+    // Check if the user owns this order
+    if (order.userId !== userId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized to cancel this order" });
+    }
+
+    // Check if the order can be cancelled (e.g., not already delivered)
+    if (order.status === "Delivered") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Cannot cancel a delivered order" });
+    }
+
+    // Update the order status to "Cancelled"
+    order.status = "Cancelled";
+    await order.save();
+
+    return res.json({
+      success: true,
+      message: "Order cancelled successfully",
+    });
+  } catch (error) {
+    console.error("Error cancelling order:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export {
   placeOrder,
   placeOrderKhalti,
@@ -124,4 +173,5 @@ export {
   userOrders,
   updateStatus,
   deleteOrder,
+  cancelOrder
 };

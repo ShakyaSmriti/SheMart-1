@@ -98,9 +98,24 @@ const ShopContextProvider = (props) => {
         { itemId, size, quantity },
         { headers: { token } }
       );
+      
+      // Show toast message when item is removed (quantity set to 0)
+      if (quantity === 0) {
+        toast.success("Product removed from cart", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
     } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message, {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -314,6 +329,54 @@ const ShopContextProvider = (props) => {
     }
   }, [token]);
 
+  // Cancel an order
+  const cancelOrder = async (orderId) => {
+    if (!token) {
+      toast.error("Please login to cancel orders", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      navigate("/login");
+      return { success: false };
+    }
+
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/order/cancel`,
+        { orderId },
+        { headers: { token } }
+      );
+
+      if (response.data.success) {
+        toast.success("Order cancelled successfully", {
+          position: "top-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        return { success: true };
+      } else {
+        toast.error(response.data.message || "Failed to cancel order", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return { success: false, message: response.data.message };
+      }
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to cancel order",
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+      return { success: false, message: "Network or server error" };
+    }
+  };
+
   // Context value to provide throughout the app
   const value = {
     products,
@@ -341,6 +404,7 @@ const ShopContextProvider = (props) => {
     setUser,
     addToWishlist,
     getUserWishlist,
+    cancelOrder,
   };
 
   // Provide context value to child components

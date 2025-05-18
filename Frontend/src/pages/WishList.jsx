@@ -58,7 +58,7 @@ const WishList = () => {
 
     if (!result?.success) {
       toast.error("Failed to remove from wishlist", {
-        autoClose: 2000,
+        autoClose: 4000,
       });
     } else {
       toast.success, {autoClose: 1500,
