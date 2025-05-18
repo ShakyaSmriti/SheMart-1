@@ -1,34 +1,35 @@
+// middleware/auth.js
 import jwt from "jsonwebtoken";
 
-const authUser = (req, res, next) => {
+const verifyToken = (req, res, next) => {
   try {
     const token = req.headers.token;
+
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Authentication token is missing",
+        message: "No token provided",
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // console.log("Decoded token:", decoded);
-    
-    req.user = {
-      userId: decoded.id,
-      role: decoded.role || "user",
-      email: decoded.email,
-    };
-    
-    // console.log("User ID found in token:", req.user.userId);
-    
-    next();
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired token",
+        });
+      }
+
+      req.user = decoded;
+      next();
+    });
   } catch (error) {
-    return res.status(401).json({
+    return res.status(500).json({
       success: false,
-      message: "Invalid or expired token",
+      message: "Authentication error",
       error: error.message,
     });
   }
 };
 
-export default authUser;
+export { verifyToken };

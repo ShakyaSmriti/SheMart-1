@@ -12,7 +12,7 @@ const List = ({ token }) => {
   // Fetch the list of products
   const fetchList = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/api/product/list`);
+      const response = await axios.get(`${backendUrl}/api/product/all`);
 
       console.log(response.data);
       if (response.data.success) {

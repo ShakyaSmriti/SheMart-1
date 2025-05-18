@@ -7,10 +7,9 @@ import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-
-
 const Product = () => {
   const { productId } = useParams();
+  // console.log("Product ID from useParams:", productId); // Log productId to debug
   const {
     products,
     token,
@@ -22,27 +21,30 @@ const Product = () => {
     setWishlistItems,
     setCartData,
     backendUrl,
-    getUserWishlist,
+    manageStock,
   } = useContext(ShopContext);
+
   const [productData, setProductData] = useState(false);
   const [media, setMedia] = useState("");
   const [size, setSize] = useState("");
-  const [review, setReview] = useState([]);
+  const [review, setReview] = useState("");
   const [description, setDescription] = useState("");
   const [rating, setRating] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [roundedUpRating, setRoundedUpRating] = useState(0);
   const [isInWishlist, setIsInWishlist] = useState(false);
-  const [isImageChanging, setIsImageChanging] = useState(false);
-  const [viewAngle, setViewAngle] = useState("front");
-  const [zoomLevel, setZoomLevel] = useState(1);
 
-  // Check if product is in wishlist
+  // console.log(`wishlistItems`, wishlistItems);
+
+  // Check if the product is in the wishlist
+
   useEffect(() => {
     if (Array.isArray(wishlistItems)) {
       const foundProduct = wishlistItems.find((item) => item._id === productId);
-      setIsInWishlist(!!foundProduct);
+
+      setIsInWishlist(!!foundProduct); // Sets to true if foundProduct exists, otherwise false
     } else {
-      setIsInWishlist(false);
+      setIsInWishlist(false); // If wishlistItems is not an array, set to false
     }
   }, [wishlistItems, productId]);
 
@@ -53,12 +55,95 @@ const Product = () => {
     if (foundProduct) {
       setProductData(foundProduct);
       if (foundProduct.image?.length > 0) {
-        setMedia(foundProduct.image[0]);
+        setMedia(foundProduct.image[0]); // Set the first image
       } else if (foundProduct.video?.length > 0) {
-        setMedia(foundProduct.video[0]);
+        setMedia(foundProduct.video[0]); // Set the first video
       }
+    } else {
+      console.error("Product not found for productId:", productId);
     }
   };
+
+  const handleAddReview = async (productId) => {
+    if (!productId) {
+      console.error("Product ID is undefined.");
+      toast.error("Unable to add review. Product ID is missing.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/review/add/${productId}`, // Ensure productId is valid
+        {
+          productId,
+          rating,
+          description,
+        },
+        {
+          headers: {
+            token,
+          },
+        }
+      );
+      console.log("Review response:", response.data);
+
+      // Update the review state with the new review
+      setReview((prevReviews) => [
+        ...prevReviews,
+        { rating, description, user: token }, // Add the new review to the list
+      ]);
+
+      setRating(0); // Reset rating after submission
+      setDescription(""); // Reset description after submission
+      toast.success("Review added successfully!");
+    } catch (error) {
+      console.error("Error adding review:", error);
+      toast.error(error.response?.data?.message || "Error adding review");
+    }
+  };
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!productId) {
+        console.error("Product ID is missing.");
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          `${backendUrl}/api/review/list/${productId}`,
+          {
+            headers: {
+              token,
+            },
+          }
+        );
+        setReview(response.data); // Assuming the API returns an array of reviews
+        // console.log("Fetched reviews:", response.data);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+      }
+    };
+
+    fetchReviews(); // Call the function
+  }, [productId, token]);
+
+  useEffect(() => {
+    const tempData = [];
+    for (const items in cartItems) {
+      for (const item in cartItems[items]) {
+        if (item !== "type" && cartItems[items][item] > 0) {
+          tempData.push({
+            _id: items,
+            size: item,
+            quantity: cartItems[items][item],
+            type: cartItems[items].type || "image", // Default to image if type is missing
+          });
+        }
+      }
+    }
+    setCartData(tempData);
+  }, [cartItems]);
 
   useEffect(() => {
     if (products.length > 0 && productId) {
@@ -66,138 +151,38 @@ const Product = () => {
     }
   }, [productId, products]);
 
-  // Calculate average rating
+  // Fix: Ensure review is always an array to avoid errors in .reduce and .map
   useEffect(() => {
-    if (review.length > 0) {
-      const avgRating =
-        review.reduce((acc, r) => acc + r.rating, 0) / review.length;
-      setRoundedUpRating(Math.ceil(avgRating));
+    if (Array.isArray(review) && review.length > 0) {
+      const averageRating =
+        review.reduce((sum, item) => sum + item.rating, 0) / review.length;
+      const roundedUpRating = Math.ceil(averageRating);
+      setRoundedUpRating(roundedUpRating);
     } else {
       setRoundedUpRating(0);
     }
   }, [review]);
 
-  // Fetch existing reviews
-  useEffect(() => {
-    const loadReviews = async () => {
-      try {
-        const res = await axios.get(`${backendUrl}/api/review/list/${productId}`);
-        if (res.data.success) {
-          setReview(res.data.data || []);
-        }
-      } catch (error) {
-        console.error("Failed to load reviews", error);
-      }
-    };
-    if (productId) loadReviews();
-  }, [productId, backendUrl]);
-
-  // Handle adding a new review
-  const handleAddReview = async (productId, rating, description) => {
-    if (!rating || !description.trim()) {
-      toast.warn("Please select a rating and write a review.");
+  // Fix: Defensive check for productData before using its properties
+  const handleQuantityChange = (e) => {
+    if (!productData || typeof productData.stock !== "number") return;
+    const newValue = Number(e.target.value);
+    if (productData.stock === 0) {
+      setQuantity(0);
+      toast.error("This product is out of stock.");
       return;
     }
-    try {
-      const res = await axios.post(
-        `${backendUrl}/api/review/add/${productId}`,
-        {
-          rating,
-          description,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (res.status === 200) {
-        setReview([res.data, ...review]); 
-        setDescription("");
-        setRating(0);
-        toast.success("Review submitted!");
-      } else {
-        toast.error("Failed to submit review");
-      }
-      
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      toast.error("Something went wrong. Please try again.");
+    if (newValue < 1) {
+      setQuantity(1);
+      toast.error("Quantity must be at least 1.");
+      return;
     }
-  };
-  
-
-  // Image transform style based on view angle
-  const getImageTransformStyle = () => {
-    if (viewAngle === "side") {
-      return {
-        transform: `translateX(-8%) scale(${zoomLevel}) perspective(1000px) rotateY(25deg)`,
-        transition: "transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-      };
-    } else if (viewAngle === "back") {
-      return {
-        transform: `translateX(8%) scale(${zoomLevel}) perspective(1000px) rotateY(-25deg)`,
-        transition: "transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-      };
-    } else {
-      return {
-        transform: `scale(${zoomLevel})`,
-        transition: "transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-      };
+    if (newValue > productData.stock) {
+      setQuantity(productData.stock);
+      toast.error(`Only ${productData.stock} items are available in stock.`);
+      return;
     }
-  };
-
-  const handleViewChange = (angle, zoom = 1) => {
-    if (angle === viewAngle && zoom === zoomLevel) return;
-    setIsImageChanging(true);
-    setTimeout(() => {
-      setViewAngle(angle);
-      setZoomLevel(zoom);
-      setTimeout(() => setIsImageChanging(false), 100);
-    }, 150);
-  };
-
-  const getProductViews = () => {
-    const baseMedia = productData.image?.[0] || productData.video?.[0];
-    if (!baseMedia) return [];
-    const views = [
-      {
-        id: "front",
-        src: baseMedia,
-        label: "Front View",
-        type: baseMedia.endsWith(".mp4") ? "video" : "image",
-      },
-      {
-        id: "side",
-        src: baseMedia,
-        label: "Side View",
-        type: baseMedia.endsWith(".mp4") ? "video" : "image",
-        zoomLevel: 3,
-      },
-      {
-        id: "back",
-        src: baseMedia,
-        label: "Back View",
-        type: baseMedia.endsWith(".mp4") ? "video" : "image",
-        zoomLevel: 2,
-      },
-    ];
-    if (productData.image && productData.image.length > 1) {
-      productData.image.slice(1, 3).forEach((img, idx) => {
-        views[idx + 1].src = img;
-      });
-    }
-    if (productData.video && productData.video.length > 0) {
-      views.push({
-        id: "video",
-        src: productData.video[0],
-        label: "Video",
-        type: "video",
-        zoomLevel: 4,
-        description: "Product video",
-      });
-    }
-    return views;
+    setQuantity(newValue);
   };
 
   return productData ? (
@@ -205,94 +190,66 @@ const Product = () => {
       {/* Product Data */}
       <div className="flex gap-12 flex-col sm:flex-row">
         {/* Product Media */}
-        <div className="flex-1 flex flex-col gap-6">
-          {/* Main Media */}
-          <div className="w-full overflow-hidden relative">
-            <div
-              className={`w-full flex justify-center items-center h-96 transition-opacity duration-300 ${
-                isImageChanging ? "opacity-70" : "opacity-100"
-              }`}
-            >
-              {media?.endsWith(".mp4") || media?.includes(".mp4") ? (
-                <video
-                  className="w-full h-full object-contain"
-                  src={media}
-                  autoPlay
-                  loop
-                  muted
-                />
-              ) : (
-                <div className="w-full h-full flex justify-center items-center overflow-hidden">
-                  <img
-                    style={getImageTransformStyle()}
-                    src={media}
-                    alt="Main Product"
-                    className="max-w-full max-h-full object-contain"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="flex-1 flex flex-col-reverse sm:flex-row gap-3">
           {/* Thumbnail List */}
-          <div className="flex justify-center gap-4 overflow-x-auto">
-            {getProductViews().map((view, index) => (
-              <div
+          <div className="flex sm:flex-col overflow-x-auto sm:overflow-y-auto sm:justify-start gap-2">
+            {productData.image?.map((item, index) => (
+              <img
+                onClick={() => setMedia(item)}
+                src={item.image}
                 key={index}
-                className={`cursor-pointer transition-all duration-300 ${
-                  viewAngle === view.id ? "border-1" : ""
-                }`}
-                onClick={() => handleViewChange(view.id, view.zoomLevel)}
-              >
-                {view.type === "video" ? (
-                  <video
-                    src={view.src}
-                    className="w-24 h-30 object-cover"
-                    muted
-                  />
-                ) : (
-                  <div className="relative w-24 h-30 overflow-hidden">
-                    <img
-                      src={view.src}
-                      alt={view.label}
-                      className="w-full h-full object-cover hover:opacity-90"
-                      style={
-                        view.id === "front"
-                          ? {}
-                          : view.id === "side"
-                          ? { transform: "perspective(500px) rotateY(15deg)" }
-                          : { transform: "perspective(500px) rotateY(-15deg)" }
-                      }
-                    />
-                  </div>
-                )}
-              </div>
+                className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer"
+              />
+            ))}
+            {productData.video?.map((item, index) => (
+              <img
+                onClick={() => setMedia(item)}
+                src={assets.videoThumbnail} // Replace with your custom thumbnail logic
+                key={index}
+                className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer"
+              />
             ))}
           </div>
+
+          {/* Main Media */}
+          <div className="w-full sm:w-[80%]">
+            {productData.image?.length > 0 ? (
+              <img
+                className="w-full h-auto aspect-[1/1] object-contain"
+                src={media}
+                alt="Main Product"
+              />
+            ) : productData.video?.length > 0 ? (
+              <video
+                className="w-full aspect-[1/1] object-contain"
+                src={media}
+                autoPlay
+                loop
+                muted
+              />
+            ) : null}
+          </div>
         </div>
-        {/* Product Info */}
+
+        {/* ------ Product Info ------- */}
         <div className="flex-1">
           <div className="flex items-center gap-40 mt-2">
             <h1 className="font-medium text-2xl">{productData.name}</h1>
             <Icon
-              className="cursor-pointer transition-colors duration-200"
+              className={`cursor-pointer transition-colors duration-200 ${
+                isInWishlist ? 'text-red-500' : 'text-gray-700'
+              }`}
               size={25}
-              onClick={async () => {
-                const wasInWishlist = isInWishlist;
-                setIsInWishlist(!wasInWishlist);
-                try {
-                  const result = await addToWishlist(productId);
-                  if (!result?.success) setIsInWishlist(wasInWishlist);
-                } catch (error) {
-                  setIsInWishlist(wasInWishlist);
-                }
-              }}
+              onClick={() => addToWishlist(productId)}
             />
           </div>
           <div className="flex items-center gap-1 mt-2">
             {[...Array(5)].map((_, i) => (
               <img
                 key={i}
-                src={i < roundedUpRating ? assets.star_icon : assets.star_dull_icon}
+                src={
+                  i < roundedUpRating ? assets.star_icon : assets.star_dull_icon
+                }
                 alt="Star"
                 className="w-3.5"
               />
@@ -305,6 +262,15 @@ const Product = () => {
           <p className="mt-5 text-gray-500 md:w-4/5">
             {productData.description}
           </p>
+          <p className="mt-2">
+            Stock:{" "}
+            {productData.stock > 0 ? (
+              productData.stock
+            ) : (
+              <span className=" text-red-500"> Out of Stock</span>
+            )}
+          </p>
+
           <div className="flex flex-col gap-4 my-8">
             <p>Select Size</p>
             <div className="flex gap-2">
@@ -320,19 +286,50 @@ const Product = () => {
                 </button>
               ))}
             </div>
+
+            <div className="flex flex-col gap-2 mt-2">
+              <p>Quantity</p>
+              <input
+                className="border text-center max-w-10 sm:max-w-20 px-1 sm:px-2 py-1"
+                type="number"
+                min={productData.stock === 0 ? 0 : 1}
+                max={productData.stock}
+                value={productData.stock === 0 ? 0 : quantity}
+                onChange={handleQuantityChange}
+                disabled={productData.stock === 0}
+              />
+            </div>
           </div>
           <button
             onClick={() => {
+              if (!size) {
+                toast.error("Please select a size before adding to cart.");
+                return;
+              }
+              if (productData.stock === 0) {
+                toast.error("This product is out of stock.");
+                return;
+              }
               if (media?.endsWith(".mp4")) {
-                addToCart(productData._id, size, "video");
+                addToCart(productData._id, size, quantity, "video");
               } else {
-                addToCart(productData._id, size, "image");
+                addToCart(productData._id, size, quantity, "image");
+              }
+              // Update stock in UI
+              setProductData((prev) => ({
+                ...prev,
+                stock: prev.stock - quantity,
+              }));
+              // Call manageStock to update stock in context/backend
+              if (typeof manageStock === "function") {
+                manageStock(productData._id, quantity);
               }
             }}
             className="bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
           >
             ADD TO CART
           </button>
+
           <hr className="mt-8 sm:w-4/5" />
           <div className="text-sm text-gray-500 mt-5 flex flex-col gap-1">
             <p>100% Original Product.</p>
@@ -341,11 +338,14 @@ const Product = () => {
           </div>
         </div>
       </div>
-      {/* Review Section */}
+
+      {/* -----Description and review Section-------- */}
       <div className="mt-20">
         <div className="flex">
-          <p className="border px-5 py-3 text-2xl">Reviews</p>
+          {/* <b className="border px-5 py-3 text-sm">Description</b> */}
+          <p className="border px-5 py-3 text-2xl ">Reviews </p>
         </div>
+
         <div className="flex flex-col gap-4 border px-6 py-6 text-sm text-gray-800">
           {/* Star Rating Input */}
           <div className="flex items-center gap-1 mt-2">
@@ -355,11 +355,13 @@ const Product = () => {
                 src={star <= rating ? assets.star_icon : assets.star_dull_icon}
                 alt="Star"
                 className="w-5 cursor-pointer"
-                onClick={() => setRating(star)}
+                onClick={() => setRating(star)} // Set rating on click
+                value={rating}
               />
             ))}
             <p className="pl-2">{rating} / 5</p>
           </div>
+
           <div className="flex gap-2 items-center">
             <textarea
               onChange={(e) => setDescription(e.target.value)}
@@ -368,13 +370,16 @@ const Product = () => {
               placeholder="Write a review..."
             />
             <button
-              onClick={() => handleAddReview(productId, rating, description)}
+              onClick={() => handleAddReview(productId)}
               className="bg-black text-white px-8 py-2 rounded-lg text-sm active:bg-gray-700"
             >
               Add Review
             </button>
           </div>
+
           <p className="py-2 border-b-2 border-gray-200">Users Reviews:</p>
+          {/* {console.log("Fetched reviews:", review)} */}
+
           {/* Display fetched reviews */}
           {review && review.length > 0 ? (
             review.map((item, index) => (
@@ -387,7 +392,11 @@ const Product = () => {
                     {[...Array(5)].map((_, i) => (
                       <img
                         key={i}
-                        src={i < item.rating ? assets.star_icon : assets.star_dull_icon}
+                        src={
+                          i < item.rating
+                            ? assets.star_icon
+                            : assets.star_dull_icon
+                        }
                         alt="Star"
                         className="w-4"
                       />
@@ -404,11 +413,12 @@ const Product = () => {
           )}
         </div>
       </div>
-      {/* Related Products */}
+
+      {/* ----------Display related products---------- */}
       <RelatedProducts
         category={productData.category}
         subCategory={productData.subCategory}
-        currentProductId={productId}
+        currentProductId={productId} // Pass the current product ID here
       />
     </div>
   ) : (

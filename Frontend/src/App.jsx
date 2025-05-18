@@ -33,6 +33,7 @@ const App = () => {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        theme="light"
       />
       <Navbar />
       <SearchBar />

@@ -1,3 +1,4 @@
+// server.js
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
@@ -15,31 +16,30 @@ import khaltiRouter from "./routes/khaltiRoute.js";
 import session from "express-session";
 import { v2 as cloudinary } from "cloudinary";
 
-// Configure Cloudinary
+// Cloudinary config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_SECRET_KEY,
 });
 
-// App Config
 const app = express();
 const port = process.env.PORT || 4001;
 connectDB();
 connectCloudinary();
 
-// Get __dirname in ES module
+// __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// middlewares
+// Middleware
 app.use(express.json());
 app.use(cors());
+app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(express.urlencoded({ extended: true }));
 
-// Add session middleware
+// Session setup
 app.use(session({
   secret: process.env.SESSION_SECRET || 'khalti-session-secret',
   resave: false,
@@ -47,7 +47,7 @@ app.use(session({
   cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
 
-// api endpoints
+// Routes
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 app.use("/api/order", orderRouter);
@@ -60,4 +60,4 @@ app.get("/", (req, res) => {
   res.send("API Working");
 });
 
-app.listen(port, () => console.log("\nServer started on PORT:" + port));
+app.listen(port, () => console.log(`\nServer started on PORT: ${port}`));

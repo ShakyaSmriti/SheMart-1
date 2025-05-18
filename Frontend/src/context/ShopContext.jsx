@@ -16,53 +16,65 @@ const ShopContextProvider = (props) => {
   const [search, setSearch] = useState(""); // Search term
   const [showSearch, setShowSearch] = useState(false); // Boolean to toggle search visibility
   const [cartItems, setCartItems] = useState({}); // Cart items
-  const [wishlistItems, setWishlistItems] = useState({}); // Wishlist items
+  const [wishlistItems, setWishlistItems] = useState([]); // Wishlist items
   const [cartData, setCartData] = useState({}); // Cart data
   const [products, setProducts] = useState([]); // List of products
-  const [token, setToken] = useState(""); // User authentication token
+  const [token, setToken] = useState(localStorage.getItem("token") || ""); // User authentication token
   const [user, setUser] = useState(null); // User data
   const navigate = useNavigate();
 
   // Add an item to the cart
-  const addToCart = async (itemId, size) => {
+  const addToCart = async (itemId, size, quantity = 1) => {
+    // Check if user is logged in
     if (!token) {
       toast.error("Please login to add items to cart");
       navigate("/login");
       return;
     }
 
+    // Ensure a size is selected
     if (!size) {
       toast.error("Select Product Size");
       return;
     }
 
+    // Find the product by ID from local state
     const productData = products.find((product) => product._id === itemId);
     if (!productData) {
       toast.error("Product not found");
       return;
     }
 
+    // Prepare local cartData
     let cartData = cartItems ? structuredClone(cartItems) : {};
+    if (!cartData[itemId]) cartData[itemId] = {};
 
-    if (!cartData[itemId]) {
-      cartData[itemId] = {};
-    }
+    // Update quantity locally
+    cartData[itemId][size] = (cartData[itemId][size] || 0) + quantity;
 
-    cartData[itemId][size] = (cartData[itemId][size] || 0) + 1;
-
+    // Optionally track media type (image/video)
     if (!cartData[itemId].type) {
       cartData[itemId].type = productData.video ? "video" : "image";
     }
 
+    // Update cart state optimistically
     setCartItems(cartData);
+    console.log("Updated cart items:", cartData);
 
+    // API call to update cart in backend
     try {
+      if (!backendUrl) {
+        console.error("Backend URL is not defined");
+        return;
+      }
+
       const response = await axios.post(
         `${backendUrl}/api/cart/add`,
-        { itemId, size },
+        { itemId, size, quantity },
         { headers: { token } }
       );
-      toast.success(response.data.message);
+
+      toast.success(response.data.message || "Item added to cart");
     } catch (error) {
       console.error("Error adding to cart:", error);
       const errorMessage =
@@ -73,17 +85,15 @@ const ShopContextProvider = (props) => {
 
   // Get the total count of items in the cart
   const getCartCount = () => {
-    let totalCount = 0;
-    for (const items in cartItems) {
-      for (const item in cartItems[items]) {
-        try {
-          if (cartItems[items][item] > 0) {
-            totalCount += cartItems[items][item];
-          }
-        } catch (error) {}
+    let count = 0;
+    for (const itemId in cartItems) {
+      for (const size in cartItems[itemId]) {
+        if (size !== "type" && cartItems[itemId][size] > 0) {
+          count += cartItems[itemId][size];
+        }
       }
     }
-    return totalCount;
+    return count;
   };
 
   // Update the quantity of an item in the cart
@@ -98,7 +108,7 @@ const ShopContextProvider = (props) => {
         { itemId, size, quantity },
         { headers: { token } }
       );
-      
+
       // Show toast message when item is removed (quantity set to 0)
       if (quantity === 0) {
         toast.success("Product removed from cart", {
@@ -117,6 +127,30 @@ const ShopContextProvider = (props) => {
         autoClose: 3000,
       });
     }
+  };
+
+  // function to handleremove stock from cart
+  const handleRemove = async (productId, size, quantity) => {
+    // Restore quantity back to stock in backend
+    try {
+      await axios.post(
+        `${backendUrl}/api/cart/restore-stock`,
+        {
+          productId,
+          quantity,
+        },
+        {
+          headers: { token },
+        }
+      );
+      toast.success("Stock restored successfully");
+    } catch (err) {
+      console.error("Stock restore failed:", err);
+      toast.error("Failed to restore stock");
+    }
+
+    // Then update local & DB cart
+    updateQuantity(productId, size, 0);
   };
 
   // Get the total amount of items in the cart
@@ -138,7 +172,7 @@ const ShopContextProvider = (props) => {
   // Fetch the list of products from the backend
   const getProductsData = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/api/product/list`);
+      const response = await axios.get(`${backendUrl}/api/product/all`);
       if (response.data.success) {
         setProducts(response.data.products);
       } else {
@@ -162,7 +196,8 @@ const ShopContextProvider = (props) => {
       );
 
       if (response.data.success) {
-        setCartItems(response.data.cartData);
+        console.log("Cart data from server:", response.data.cartData);
+        setCartItems(response.data.cartData || {});
       } else {
         throw new Error(response.data.message || "Failed to fetch cart data");
       }
@@ -176,87 +211,106 @@ const ShopContextProvider = (props) => {
   };
 
   // Add an item to the wishlist
-
   const addToWishlist = async (productId) => {
     if (!token) {
-      toast.error("Please login to add items to wishlist");
+      toast.error("Please login to add items to wishlist", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       navigate("/login");
       return { success: false };
     }
-  
-    const productData = products.find((product) => product._id === productId);
-    if (!productData) {
-      toast.error("Product not found");
-      return { success: false };
-    }
-  
+
+    // Check if product is already in wishlist
+    const isInWishlist = wishlistItems.some(
+      (item) => item._id === productId
+    );
+
     try {
+      // Update local state IMMEDIATELY for better UX - before API call
+      if (isInWishlist) {
+        // Remove from wishlist
+        setWishlistItems(prevItems => 
+          prevItems.filter(item => item._id !== productId)
+        );
+      } else {
+        // Add to wishlist - make sure we have the full product data
+        const productToAdd = products.find(p => p._id === productId) || { _id: productId };
+        setWishlistItems(prevItems => [...prevItems, productToAdd]);
+      }
+
+      // Then make the API call
       const response = await axios.post(
         `${backendUrl}/api/wishlist/add`,
         { productId },
         { headers: { token } }
       );
-  
-      console.log("Wishlist API Response:", response.data);
-  
+
       if (response.data.success) {
-        setWishlistItems((prevWishlist) => {
-          const alreadyAdded = prevWishlist.some(
-            (item) => item._id.toString() === productId
-          );
-  
-          let updatedWishlist;
-          if (alreadyAdded) {
-            // Remove from wishlist
-            updatedWishlist = prevWishlist.filter(
-              (item) => item._id.toString() !== productId
-            );
-          } else {
-            // Add to wishlist
-            updatedWishlist = [...prevWishlist, { _id: productId }];
-          }
-  
-          return updatedWishlist;
-        });
-  
         toast.success(response.data.message, {
+          position: "top-right",
           autoClose: 2000,
         });
-  
-        return response.data; // Return server response
+        
+        return response.data;
       } else {
+        // If API call fails, revert the state change
+        if (isInWishlist) {
+          // Re-add to wishlist
+          const productToAdd = products.find(p => p._id === productId) || { _id: productId };
+          setWishlistItems(prevItems => [...prevItems, productToAdd]);
+        } else {
+          // Remove from wishlist
+          setWishlistItems(prevItems => 
+            prevItems.filter(item => item._id !== productId)
+          );
+        }
+        
         toast.error(response.data.message || "Failed to update wishlist", {
-          autoClose: 2000,
+          position: "top-right",
+          autoClose: 3000,
         });
         return response.data;
       }
     } catch (error) {
-      console.error("Error adding to wishlist:", error);
+      // If API call errors, revert the state change
+      if (isInWishlist) {
+        // Re-add to wishlist
+        const productToAdd = products.find(p => p._id === productId) || { _id: productId };
+        setWishlistItems(prevItems => [...prevItems, productToAdd]);
+      } else {
+        // Remove from wishlist
+        setWishlistItems(prevItems => 
+          prevItems.filter(item => item._id !== productId)
+        );
+      }
+      
+      console.error("Error updating wishlist:", error);
       toast.error(
-        error.response?.data?.message || "Failed to add to wishlist",
-        { autoClose: 2000 }
+        error.response?.data?.message || "Failed to update wishlist",
+        { position: "top-right", autoClose: 3000 }
       );
       return { success: false, message: "Network or server error" };
     }
   };
-  
+
   // Fetch the user's wishlist data from the backend
   const getUserWishlist = async (token) => {
     try {
       if (!token) {
         throw new Error("No authentication token provided");
       }
-  
+
       const response = await axios.get(`${backendUrl}/api/wishlist/get`, {
         headers: { token },
       });
-  
+
       if (response.data.success) {
         // Make sure wishlist is always an array
         const wishList = Array.isArray(response.data.wishList)
           ? response.data.wishList
           : [];
-  
+
         setWishlistItems(wishList);
       } else {
         throw new Error(
@@ -299,28 +353,38 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  // Fetch the user's wishlist data when the token changes
-  useEffect(() => {
-    if (token) {
-      getUserWishlist(token);
-    } else {
-      // Optional: Handle case where token is not available
-      console.warn("No authentication token available.");
-    }
-  }, [token]);
+  // function manage stock levels
+  const manageStock = async (productId, newQuantity, prevQuantity = 0) => {
+    try {
+      const response = await axios.put(
+        `${backendUrl}/api/product/manage-stock`,
+        { productId, newQuantity, prevQuantity },
+        { headers: { token } }
+      );
 
-  // Initialize data from local storage if token exists
+      if (response.data.success) {
+        toast.success(response.data.message);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error("Error managing stock:", error);
+      toast.error(error.response?.data?.message || "Failed to manage stock");
+    }
+  };
+
+  // Initialize data when component mounts
   useEffect(() => {
     getProductsData();
-  }, []);
-
-  useEffect(() => {
+    
+    // Get token from localStorage
     const savedToken = localStorage.getItem("token");
-    if (savedToken && !token) {
+    if (savedToken) {
       setToken(savedToken);
     }
   }, []);
 
+  // Fetch user data when token changes
   useEffect(() => {
     if (token) {
       getUserCart(token);
@@ -366,13 +430,10 @@ const ShopContextProvider = (props) => {
       }
     } catch (error) {
       console.error("Error cancelling order:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to cancel order",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        }
-      );
+      toast.error(error.response?.data?.message || "Failed to cancel order", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return { success: false, message: "Network or server error" };
     }
   };
@@ -405,6 +466,9 @@ const ShopContextProvider = (props) => {
     addToWishlist,
     getUserWishlist,
     cancelOrder,
+    handleRemove,
+    manageStock,
+    // Don't include getUserCart in the context value if it's causing issues
   };
 
   // Provide context value to child components

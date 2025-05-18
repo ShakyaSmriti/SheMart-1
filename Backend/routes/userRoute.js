@@ -9,31 +9,29 @@ import {
   resetpassword,
   deleteUser,
   getProfile,
-  updateUserProfile, // Import the updateUserProfile controller
+  updateUserProfile,
 } from "../controllers/userController.js";
-import authUser from "../middleware/Auth.js";
-import upload from "../middleware/multer.js"; // Import multer middleware
+import { verifyToken } from "../middleware/Auth.js";
 
-const userRouter = express.Router();
+const router = express.Router();
 
-userRouter.post("/register", registerUser);
-userRouter.post("/login", loginUser);
-userRouter.post("/admin", adminLogin);
-userRouter.get("/list", allUsers);
-userRouter.post("/remove/:id", deleteUser);
+// Public routes
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+router.post("/admin", adminLogin);
 
-// Profile route (protected)
-userRouter.get("/profile", authUser, getProfile); // Get profile (protected)
-userRouter.put(
-  "/update",
-  authUser,
-  upload.single("profilePicture"),
-  updateUserProfile
-); 
+// Protected routes
+router.get("/profile", verifyToken, getProfile);
+router.put("/update", verifyToken, updateUserProfile);
+router.delete("/delete", verifyToken, deleteUser);  // Changed from deleteUserAccount to deleteUser
+
+// Admin routes
+router.get("/list", allUsers);
+router.post("/remove/:id", deleteUser);
 
 // Forget password routes
-userRouter.post("/forget-password", forgetPasswordMail);
-userRouter.get("/reset-password/:id/:token", resetpasswordget);
-userRouter.post("/reset-password/:id/:token", resetpassword);
+router.post("/forget-password", forgetPasswordMail);
+router.get("/reset-password/:id/:token", resetpasswordget);
+router.post("/reset-password/:id/:token", resetpassword);
 
-export default userRouter;
+export default router;

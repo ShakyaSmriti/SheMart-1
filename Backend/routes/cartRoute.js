@@ -3,13 +3,15 @@ import {
   addToCart,
   getUserCart,
   updateCart,
+  restoreStockFromCart,
 } from "../controllers/cartController.js";
-import authUser from "../middleware/Auth.js";
+import { verifyToken } from "../middleware/Auth.js";  // Changed from default import to named import
 
 const cartRouter = express.Router();
 
-cartRouter.post("/add", authUser, addToCart);
-cartRouter.post("/update", authUser, updateCart);
-cartRouter.post("/get", authUser, getUserCart);
+cartRouter.post("/add", verifyToken, addToCart);
+cartRouter.post("/update", verifyToken, updateCart);
+cartRouter.post("/get", verifyToken, getUserCart);
+cartRouter.post("/restore-stock", verifyToken, restoreStockFromCart);
 
 export default cartRouter;

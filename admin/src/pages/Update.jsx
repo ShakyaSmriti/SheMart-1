@@ -3,18 +3,19 @@ import { assets } from "../assets/assets";
 import axios from "axios";
 import { backendUrl } from "../App";
 import { toast } from "react-toastify";
-import { Navigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const Update = ({ token, product }) => {
+  const navigate = useNavigate(); // Initialize useNavigate
   const [image, setImage] = useState(null);
   const [video, setVideo] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [stock, setStock] = useState("");
   const [category, setCategory] = useState("");
   const [subCategory, setSubCategory] = useState("");
-  // const [selectedSizes, setSelectedSizes] = useState([]);
   const [bestseller, setBestseller] = useState(false);
   const [sizes, setSizes] = useState([]);
 
@@ -25,6 +26,7 @@ const Update = ({ token, product }) => {
       setName(product.name);
       setDescription(product.description);
       setPrice(product.price);
+      setStock(product.stock);
       setCategory(product.category);
       setSubCategory(product.subCategory || "Tops");
       setBestseller(product.bestseller);
@@ -56,6 +58,7 @@ const Update = ({ token, product }) => {
       formData.append("name", name);
       formData.append("description", description);
       formData.append("price", price);
+      formData.append("stock", stock);
       formData.append("category", category);
       formData.append("subCategory", subCategory);
       formData.append("bestseller", bestseller);
@@ -77,12 +80,13 @@ const Update = ({ token, product }) => {
       setName("");
       setDescription("");
       setPrice("");
+      setStock("");
       setCategory("");
       setSubCategory("");
       setBestseller(false);
       setSizes([]);
 
-      Navigate("/list");
+      navigate("/list"); // Use navigate instead of Navigate
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
     }
@@ -193,6 +197,16 @@ const Update = ({ token, product }) => {
           <input
             onChange={(e) => setPrice(e.target.value)}
             value={price}
+            className="w-full sm:w-[120px] px-3 py-2"
+            type="number"
+          />
+        </div>
+
+        <div>
+          <p className="mb-2">Product Stock</p>
+          <input
+            onChange={(e) => setStock(e.target.value)}
+            value={stock}
             className="w-full sm:w-[120px] px-3 py-2"
             type="number"
           />

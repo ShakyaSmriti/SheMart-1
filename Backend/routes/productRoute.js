@@ -1,39 +1,23 @@
+// routes/productRoute.js
 import express from "express";
-
-import {
-  listProduct,
-  addProduct,
-  removeProduct,
-  singleProduct,
+import { 
+  addProduct, 
+  getAllProducts, 
+  getProductById,
   updateProduct,
+  removeProduct
 } from "../controllers/productController.js";
-import upload from "../middleware/multer.js";
-import adminAuth from "../middleware/adminAuth.js";
+import { verifyToken } from "../middleware/Auth.js";  // Fixed import path
 
-const productRouter = express.Router();
+const router = express.Router();
 
-productRouter.post(
-  "/add",
-  adminAuth,
-  upload.fields([
-    { name: "image", maxCount: 1 },
-    { name: "video", maxCount: 1 },
-  ]),
-  addProduct
-);
+// Public routes
+router.get("/all", getAllProducts);
+router.get("/:id", getProductById);
 
-productRouter.post("/remove", adminAuth, removeProduct);
-productRouter.post("/single", singleProduct);
-productRouter.get("/list", listProduct);
+// Protected routes (require token)
+router.post("/add", verifyToken, addProduct);
+router.put("/update/:id", verifyToken, updateProduct);
+router.delete("/delete/:id", verifyToken, removeProduct);
 
-productRouter.put(
-  "/update/:id",
-  adminAuth,
-  upload.fields([
-    { name: "image", maxCount: 1 },
-    { name: "video", maxCount: 1 },
-  ]),
-  updateProduct
-);
-
-export default productRouter;
+export default router;

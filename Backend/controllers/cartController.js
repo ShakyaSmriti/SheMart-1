@@ -1,18 +1,23 @@
+import productModel from "../models/ProductModel.js";
 import userModel from "../models/userModel.js";
 
 // Add products to user cart
 const addToCart = async (req, res) => {
   try {
-    const { itemId, size } = req.body;
-    const userId = req.user?.userId; // ✅ Extract userId from req.user
+    const { itemId, size, quantity } = req.body;
+    const userId = req.user?.userId;
 
-    // console.log("User ID from middleware:", userId);
-    // console.log("Request Body:", req.body);
+    if (!userId || !itemId || !size || quantity == null) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing or invalid required fields",
+      });
+    }
 
-    if (!userId || !itemId || !size) {
+    if (quantity <= 0) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing required fields" });
+        .json({ success: false, message: "Quantity must be greater than 0" });
     }
 
     const userData = await userModel.findById(userId);
@@ -27,7 +32,8 @@ const addToCart = async (req, res) => {
     if (!cartData[itemId]) {
       cartData[itemId] = {};
     }
-    cartData[itemId][size] = (cartData[itemId][size] || 0) + 1;
+
+    cartData[itemId][size] = (cartData[itemId][size] || 0) + quantity;
 
     await userModel.findByIdAndUpdate(userId, { cartData }, { new: true });
 
@@ -106,9 +112,51 @@ const getUserCart = async (req, res) => {
     let cartData = userData.cartData || {}; // Ensure cartData exists
     res.json({ success: true, cartData });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching cart:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-export { addToCart, updateCart, getUserCart };
+const restoreStockFromCart = async (req, res) => {
+  try {
+    const { productId, quantity } = req.body;
+
+    if (!productId || typeof quantity !== "number") {
+      return res.status(400).json({
+        success: false,
+        message: "Missing or invalid productId or quantity",
+      });
+    }
+
+    // Find the product first
+    const product = await productModel.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // Add quantity back to stock
+    product.stock = (product.stock || 0) + quantity;
+
+    // Save updated product
+    await product.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Stock restored successfully",
+      updatedStock: product.stock,
+      product,
+    });
+  } catch (error) {
+    console.error("Error restoring stock:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Server error while restoring stock",
+      error: error.message,
+    });
+  }
+};
+
+export { addToCart, updateCart, getUserCart, restoreStockFromCart };

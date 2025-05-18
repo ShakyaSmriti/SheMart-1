@@ -8,8 +8,8 @@ import {
   cancelOrder
 } from "../controllers/orderController.js";
 
-import adminAuth from "./../middleware/adminAuth.js";
-import authUser from "./../middleware/Auth.js";
+import adminAuth from "../middleware/adminAuth.js";
+import { verifyToken } from "../middleware/Auth.js";
 
 const orderRouter = express.Router();
 
@@ -19,11 +19,11 @@ orderRouter.post("/status", adminAuth, updateStatus);
 orderRouter.post("/delete", adminAuth, updateStatus);
 
 // Payment features
-orderRouter.post("/place", authUser, placeOrder);
-orderRouter.post("/khalti", authUser, placeOrderKhalti);
+orderRouter.post("/place", verifyToken, placeOrder);
+orderRouter.post("/khalti", verifyToken, placeOrderKhalti);
 
 // User features
-orderRouter.get("/userorders", authUser, userOrders);
-orderRouter.post("/cancel", authUser, cancelOrder);
+orderRouter.get("/userorders", verifyToken, userOrders);
+orderRouter.post("/cancel", verifyToken, cancelOrder);
 
 export default orderRouter;
