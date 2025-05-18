@@ -56,7 +56,7 @@ const placeOrder = async (req, res) => {
 // Placing orders using Khalti method
 const placeOrderKhalti = async (req, res) => {};
 
-// All orders data fro admin panel
+// All orders data from admin panel
 const allOrders = async (req, res) => {
   try {
     const orders = await orderModel.find({});

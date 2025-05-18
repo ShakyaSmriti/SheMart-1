@@ -4,7 +4,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const Profile = () => {
-  const { backendUrl } = useContext(ShopContext);
+  const { backendUrl, user: globalUser, setUser: setGlobalUser } =
+    useContext(ShopContext);
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,9 +26,11 @@ const Profile = () => {
       }
 
       console.log("Fetching profile with token:", token);
-      
+
       const response = await axios.get(`${backendUrl}/api/user/profile`, {
-        headers: { token },
+        headers: {
+          token: token, // Changed from Authorization: Bearer ${token}
+        },
       });
 
       console.log("Profile response:", response.data);
@@ -38,7 +41,10 @@ const Profile = () => {
           ? new Date(fetchedUser.dateOfBirth).toISOString().split("T")[0]
           : "";
 
-        const updatedUser = { ...fetchedUser, dateOfBirth: formattedDateOfBirth };
+        const updatedUser = {
+          ...fetchedUser,
+          dateOfBirth: formattedDateOfBirth,
+        };
 
         setUser(updatedUser);
         setFormData(updatedUser);
@@ -54,8 +60,20 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (globalUser) {
+      const formattedDateOfBirth = globalUser.dateOfBirth
+        ? new Date(globalUser.dateOfBirth).toISOString().split("T")[0]
+        : "";
+      const updatedUser = {
+        ...globalUser,
+        dateOfBirth: formattedDateOfBirth,
+      };
+      setUser(updatedUser);
+      setFormData(updatedUser);
+    } else {
+      fetchProfile();
+    }
+  }, [globalUser]);
 
   const generateInitials = (name) => {
     if (!name) return "User";
@@ -101,24 +119,19 @@ const Profile = () => {
         return;
       }
 
-      const formDataToSend = new FormData();
       const updatedData = { ...formData };
 
       if (updatedData.dateOfBirth) {
-        updatedData.dateOfBirth = new Date(updatedData.dateOfBirth);
+        updatedData.dateOfBirth = new Date(updatedData.dateOfBirth).toISOString(); // ISO format
       }
-
-      Object.keys(updatedData).forEach((key) => {
-        formDataToSend.append(key, updatedData[key]);
-      });
 
       const response = await axios.put(
         `${backendUrl}/api/user/update`,
-        formDataToSend,
+        updatedData,
         {
           headers: {
-            token,
-            "Content-Type": "multipart/form-data",
+            token: token, // Changed from Authorization: Bearer ${token}
+            "Content-Type": "application/json",
           },
         }
       );
@@ -138,12 +151,20 @@ const Profile = () => {
         setUser(updatedUser);
         setFormData(updatedUser);
         setIsEditing(false);
+
+        // Update global context
+        if (setGlobalUser) {
+          setGlobalUser(updatedUser);
+        }
       } else {
-        toast.error(response.data.message);
+        toast.error(response.data.message || "Failed to update profile");
       }
     } catch (error) {
+      console.error("Error updating profile:", error);
       toast.error(
-        error.response?.data?.message || error.message || "An error occurred"
+        error.response?.data?.message ||
+          error.message ||
+          "An error occurred while updating"
       );
     }
   };
@@ -269,7 +290,7 @@ const Profile = () => {
                     type="button"
                     onClick={handleCancel}
                     aria-label="Cancel Edit"
-                    className="bg-black  text-white px-6 py-2 rounded-full"
+                    className="bg-black text-white px-6 py-2 rounded-full"
                   >
                     Cancel
                   </button>

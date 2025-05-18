@@ -143,12 +143,15 @@ const Orders = () => {
                 </div>
 
                 <div className="flex gap-2 mt-3 md:mt-0">
-                  <button
-                    onClick={loadOrderData}
-                    className="border px-2 py-0 text-[10px] md:text-xs font-medium rounded-sm leading-tight h-10.5"
-                  >
-                    Track Order
-                  </button>
+                  {/* Only show Track Order button if the order is not cancelled */}
+                  {item.status !== "Cancelled" && (
+                    <button
+                      onClick={loadOrderData}
+                      className="border px-2 py-0 text-[10px] md:text-xs font-medium rounded-sm leading-tight h-10.5"
+                    >
+                      Track Order
+                    </button>
+                  )}
                   
                   {canCancelOrder(item.status) && (
                     <button
