@@ -33,6 +33,7 @@ const Product = () => {
   const [quantity, setQuantity] = useState(1);
   const [roundedUpRating, setRoundedUpRating] = useState(0);
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1); // Default zoom level
 
   // console.log(`wishlistItems`, wishlistItems);
 
@@ -190,34 +191,15 @@ const Product = () => {
       {/* Product Data */}
       <div className="flex gap-12 flex-col sm:flex-row">
         {/* Product Media */}
-        <div className="flex-1 flex flex-col-reverse sm:flex-row gap-3">
-          {/* Thumbnail List */}
-          <div className="flex sm:flex-col overflow-x-auto sm:overflow-y-auto sm:justify-start gap-2">
-            {productData.image?.map((item, index) => (
-              <img
-                onClick={() => setMedia(item)}
-                src={item.image}
-                key={index}
-                className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer"
-              />
-            ))}
-            {productData.video?.map((item, index) => (
-              <img
-                onClick={() => setMedia(item)}
-                src={assets.videoThumbnail} // Replace with your custom thumbnail logic
-                key={index}
-                className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer"
-              />
-            ))}
-          </div>
-
+        <div className="flex-1 flex flex-col gap-4">
           {/* Main Media */}
-          <div className="w-full sm:w-[80%]">
+          <div className="w-full overflow-hidden">
             {productData.image?.length > 0 ? (
               <img
-                className="w-full h-auto aspect-[1/1] object-contain"
+                className="w-full h-auto aspect-[1/1] object-contain transition-transform duration-300"
                 src={media}
-                alt="Main Product"
+                alt={productData.name}
+                style={{ transform: `scale(${zoomLevel})` }}
               />
             ) : productData.video?.length > 0 ? (
               <video
@@ -229,6 +211,68 @@ const Product = () => {
               />
             ) : null}
           </div>
+          
+          {/* Zoom thumbnails - same image with different zoom levels */}
+          <div className="grid grid-cols-3" >
+            {productData.image?.length > 0 && (
+              <>
+                <div 
+                  onClick={() => setZoomLevel(1)} 
+                  className={`cursor-pointer overflow-hidden ${zoomLevel === 1 ? '' : ''}`}
+                >
+                  <img 
+                    src={media} 
+                    alt="Normal view" 
+                    className="w-full h-auto aspect-[2/1] object-contain"
+                    style={{ transform: 'scale(1.5)', transformOrigin: 'center' }}
+                  />
+                
+                </div>
+                
+                <div 
+                  onClick={() => setZoomLevel(1.5)} 
+                  className={`cursor-pointer  overflow-hidden ${zoomLevel === 1.5 ? '' : ''}`}
+                >
+                  <img 
+                    src={media} 
+                    alt="Medium zoom" 
+                    className="w-full h-auto aspect-[2/1] object-contain "
+                    style={{ transform: 'scale(1.5)', transformOrigin: 'middle' }}
+                  />
+                  <div className="text-xs text-center py-1">Medium Zoom</div>
+                </div>
+                
+                <div 
+                  onClick={() => setZoomLevel(2)} 
+                  className={`cursor-pointer  overflow-hidden ${zoomLevel === 2 ? '' : ''}`}
+                >
+                  <img 
+                    src={media} 
+                    alt="High zoom" 
+                    className="w-full h-auto aspect-[2/1] object-contain"
+                    style={{ transform: 'scale(1.5)', transformOrigin: 'center' }}
+                  />
+                  <div className="text-xs text-center py-1">High Zoom</div>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Original thumbnails for selecting different images/videos */}
+          <div className="flex overflow-x-auto gap-2 py-2">
+            {productData.image?.map((item, index) => (
+              <img
+                onClick={() => {
+                  setMedia(item);
+                  setZoomLevel(1); 
+                }}
+                src={item.image}
+                key={index}
+      
+              />
+            ))}
+          
+          </div>
         </div>
 
         {/* ------ Product Info ------- */}
@@ -237,7 +281,7 @@ const Product = () => {
             <h1 className="font-medium text-2xl">{productData.name}</h1>
             <Icon
               className={`cursor-pointer transition-colors duration-200 ${
-                isInWishlist ? "text-red-500" : "text-gray-700"
+                isInWishlist ? "text-red-800" : "text-gray-900"
               }`}
               size={25}
               onClick={() => addToWishlist(productId)}

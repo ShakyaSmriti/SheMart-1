@@ -29,7 +29,7 @@ const Profile = () => {
 
       const response = await axios.get(`${backendUrl}/api/user/profile`, {
         headers: {
-          token: token, // Changed from Authorization: Bearer ${token}
+          token: token,
         },
       });
 
