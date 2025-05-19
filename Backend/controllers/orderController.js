@@ -257,7 +257,7 @@ const sendOrderConfirmationEmail = async (user, order) => {
       }
     }
 
-    // Email content with improved UI
+    // Email content 
     const mailOptions = {
       from: '"SheMart" <noreply@shemart.com>',
       to: user.email,
