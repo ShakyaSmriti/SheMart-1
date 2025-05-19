@@ -12,3 +12,4 @@ router.post("/verify", verifyToken, verifyPayment);
 router.get("/verify", verifyToken, verifyPayment);
 
 export default router;
+

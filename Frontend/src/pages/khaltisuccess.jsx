@@ -2,12 +2,13 @@ import React, { useEffect, useContext, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ShopContext } from "../context/ShopContext";
+import axios from "axios";
 
 const KhaltiSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { backendUrl, token, setCartItems } = useContext(ShopContext);
-  const [paymentStatus, setPaymentStatus] = useState("processing"); // "processing", "success", "failed"
+  const [paymentStatus, setPaymentStatus] = useState("processing");
   
   useEffect(() => {
     const verifyPayment = async () => {
@@ -16,32 +17,65 @@ const KhaltiSuccess = () => {
         const searchParams = new URLSearchParams(location.search);
         const pidx = searchParams.get("pidx");
         
+        // Get token from localStorage or context
+        const authToken = localStorage.getItem("token") || token;
+        
         if (!pidx) {
           setPaymentStatus("failed");
           toast.error("Invalid payment response");
-          setTimeout(() => {
-            navigate("/place-order");
-          }, 5000);
+          setTimeout(() => navigate("/place-order"), 5000);
           return;
         }
 
         console.log("Verifying payment with pidx:", pidx);
 
-        // Try POST request first
+        // Get stored order data
+        const storedOrderData = localStorage.getItem('khaltiOrderData');
+        
+        // Create order payload with correct payment method
+        const createOrderPayload = storedOrderData ? {
+          ...JSON.parse(storedOrderData),
+          paymentMethod: "Khalti", // Explicitly set to Khalti
+          payment: true,           // Mark as paid
+          transactionId: pidx      // Include transaction ID
+        } : null;
+        
+        console.log("Creating order with payment method:", createOrderPayload?.paymentMethod);
+        
+        // Try direct order creation first
+        if (createOrderPayload) {
+          try {
+            const directOrderResponse = await axios.post(
+              `${backendUrl}/api/order/place`,
+              createOrderPayload,
+              { headers: { token: authToken } }
+            );
+            
+            if (directOrderResponse.data.success) {
+              console.log("Order created successfully with Khalti payment");
+              localStorage.removeItem('khaltiOrderData');
+              setPaymentStatus("success");
+              toast.success("Payment successful! Your order has been placed.");
+              setCartItems({});
+              setTimeout(() => navigate("/orders"), 5000);
+              return;
+            }
+          } catch (orderError) {
+            console.error("Failed to create order directly:", orderError);
+          }
+        }
+        
+        // If direct creation fails, try verification
         try {
-          // Get stored order data as fallback
-          const storedOrderData = localStorage.getItem('khaltiOrderData');
-          
           const response = await fetch(`${backendUrl}/api/khalti/verify`, {
             method: "POST",
             headers: { 
               "Content-Type": "application/json",
-              "token": token
+              "token": authToken
             },
             body: JSON.stringify({ 
               pidx,
-              // Include order data as fallback if session fails
-              orderData: storedOrderData ? JSON.parse(storedOrderData) : undefined
+              orderData: createOrderPayload
             }),
           });
 
@@ -49,80 +83,50 @@ const KhaltiSuccess = () => {
           console.log("Verification response:", data);
 
           if (data.success) {
-            // Clear stored order data
             localStorage.removeItem('khaltiOrderData');
-            
-            // Immediately update payment status to success
             setPaymentStatus("success");
-            
-            // Show success message
-            toast.success("Payment successful! Your order has been placed.", {
-              autoClose: 5000, // 5 seconds
-              position: "top-center",
-              hideProgressBar: false,
-              closeOnClick: false,
-              pauseOnHover: true,
-              draggable: false
-            });
-            
-            // Set cart items to empty
+            toast.success("Payment successful! Your order has been placed.");
             setCartItems({});
-            
-            // Wait 5 seconds before redirecting
-            setTimeout(() => {
-              navigate("/orders");
-            }, 5000);
+            setTimeout(() => navigate("/orders"), 5000);
           } else {
-            setPaymentStatus("failed");
-            toast.error(data.message || "Payment verification failed", {
-              autoClose: 5000
-            });
-            setTimeout(() => {
-              navigate("/place-order");
-            }, 5000);
-          }
-        } catch (postError) {
-          console.error("POST request failed, trying GET:", postError);
-          
-          // If POST fails, try GET as fallback
-          const response = await fetch(`${backendUrl}/api/khalti/verify?pidx=${pidx}`, {
-            method: "GET",
-            headers: { 
-              "token": token
+            // Final fallback - try one more time with direct order creation
+            if (createOrderPayload) {
+              try {
+                const finalOrderResponse = await axios.post(
+                  `${backendUrl}/api/order/place`,
+                  createOrderPayload,
+                  { headers: { token: authToken } }
+                );
+                
+                if (finalOrderResponse.data.success) {
+                  console.log("Order created in final fallback");
+                  localStorage.removeItem('khaltiOrderData');
+                  setPaymentStatus("success");
+                  toast.success("Payment successful! Your order has been placed.");
+                  setCartItems({});
+                  setTimeout(() => navigate("/orders"), 5000);
+                  return;
+                }
+              } catch (finalError) {
+                console.error("Final fallback failed:", finalError);
+              }
             }
-          });
-
-          const data = await response.json();
-          console.log("GET Verification response:", data);
-
-          if (data.success) {
-            setPaymentStatus("success");
-            toast.success("Payment successful! Your order has been placed.", {
-              autoClose: 5000
-            });
-            setCartItems({});
-            setTimeout(() => {
-              navigate("/orders");
-            }, 5000);
-          } else {
+            
             setPaymentStatus("failed");
-            toast.error(data.message || "Payment verification failed", {
-              autoClose: 5000
-            });
-            setTimeout(() => {
-              navigate("/place-order");
-            }, 5000);
+            toast.error(data.message || "Payment verification failed");
+            setTimeout(() => navigate("/place-order"), 5000);
           }
+        } catch (error) {
+          console.error("Verification error:", error);
+          setPaymentStatus("failed");
+          toast.error("An error occurred during payment verification");
+          setTimeout(() => navigate("/place-order"), 5000);
         }
       } catch (error) {
-        console.error("Error verifying payment:", error);
+        console.error("Error in payment verification flow:", error);
         setPaymentStatus("failed");
-        toast.error("An error occurred during payment verification", {
-          autoClose: 5000
-        });
-        setTimeout(() => {
-          navigate("/place-order");
-        }, 5000);
+        toast.error("An error occurred during payment verification");
+        setTimeout(() => navigate("/place-order"), 5000);
       }
     };
 
@@ -148,7 +152,7 @@ const KhaltiSuccess = () => {
               </svg>
             </div>
             <h2 className="text-xl font-semibold mb-2">Payment Successful!</h2>
-            <p className="text-gray-600 mb-4">Your order has been placed successfully.</p>
+            <p className="text-gray-600 mb-4">Your order has been placed successfully with Khalti.</p>
             <p className="text-sm text-gray-500">Redirecting to your orders in 5 seconds...</p>
           </div>
         )}

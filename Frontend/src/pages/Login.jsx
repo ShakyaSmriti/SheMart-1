@@ -65,17 +65,23 @@ const Login = () => {
         });
 
         if (response.data.success) {
-          setToken(response.data.token);
+          // Store token in localStorage
           localStorage.setItem("token", response.data.token);
-          toast.success("Logged in successfully!");
+          
+          // Verify token was stored correctly
+          const storedToken = localStorage.getItem("token");
+          console.log("Token stored successfully:", storedToken ? "Yes" : "No");
+          
+          setToken(response.data.token);
+          toast.success("Login successful!");
+          navigate("/");
         } else {
           toast.error(response.data.message);
         }
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "An unexpected error occurred."
-      );
+      console.error("Login error:", error);
+      toast.error("An error occurred during login");
     }
   };
 

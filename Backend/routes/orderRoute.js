@@ -5,6 +5,7 @@ import {
   allOrders,
   userOrders,
   updateStatus,
+  deleteOrder,
   cancelOrder
 } from "../controllers/orderController.js";
 
@@ -16,7 +17,7 @@ const orderRouter = express.Router();
 // Admin features
 orderRouter.post("/list", adminAuth, allOrders);
 orderRouter.post("/status", adminAuth, updateStatus);
-orderRouter.post("/delete", adminAuth, updateStatus);
+orderRouter.post("/delete", adminAuth, deleteOrder);
 
 // Payment features
 orderRouter.post("/place", verifyToken, placeOrder);

@@ -19,7 +19,10 @@ const Orders = () => {
 
       if (response.data.success) {
         let allOrdersItem = [];
-        response.data.orders.forEach((order) => {
+        // Sort orders by date (newest first) before processing
+        const sortedOrders = [...response.data.orders].sort((a, b) => b.date - a.date);
+        
+        sortedOrders.forEach((order) => {
           order.items.forEach((item) => {
             allOrdersItem.push({
               ...item,
@@ -32,7 +35,8 @@ const Orders = () => {
           });
         });
 
-        setOrderData(allOrdersItem.reverse());
+        // No need for reverse() since we already sorted the orders
+        setOrderData(allOrdersItem);
       }
     } catch (error) {
       console.error("Error loading orders:", error);
@@ -143,8 +147,8 @@ const Orders = () => {
                 </div>
 
                 <div className="flex gap-2 mt-3 md:mt-0">
-                  {/* Only show Track Order button if the order is not cancelled */}
-                  {item.status !== "Cancelled" && (
+                  {/* Only show Track Order button if the order is not cancelled and not delivered */}
+                  {item.status !== "Cancelled" && item.status !== "Delivered" && (
                     <button
                       onClick={loadOrderData}
                       className="border px-2 py-0 text-[10px] md:text-xs font-medium rounded-sm leading-tight h-10.5"

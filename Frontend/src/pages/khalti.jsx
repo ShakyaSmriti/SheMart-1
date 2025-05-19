@@ -18,6 +18,14 @@ const Khalti = () => {
         return;
       }
 
+      // Check if token exists
+      const authToken = localStorage.getItem("token") || token;
+      if (!authToken) {
+        toast.error("Authentication required. Please log in.");
+        navigate("/login");
+        return;
+      }
+
       try {
         const paisa = parseInt(amount) * 100; // Convert to paisa
         const purchase_order_id = uuidv4();

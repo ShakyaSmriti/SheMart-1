@@ -23,6 +23,25 @@ const ShopContextProvider = (props) => {
   const [user, setUser] = useState(null); // User data
   const navigate = useNavigate();
 
+  // Add this function to your ShopContext
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return token ? { token: token } : {};
+  };
+
+  // Then use it in all your API calls
+  const fetchData = async (endpoint) => {
+    try {
+      const response = await axios.get(`${backendUrl}${endpoint}`, {
+        headers: getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching from ${endpoint}:`, error);
+      return null;
+    }
+  };
+
   // Add an item to the cart
   const addToCart = async (itemId, size, quantity = 1) => {
     // Check if user is logged in
