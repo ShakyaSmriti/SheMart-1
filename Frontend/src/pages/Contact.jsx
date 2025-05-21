@@ -63,7 +63,7 @@ const Contact = () => {
           <img
             src={assets.contact_img}
             alt="Contact"
-            className="w-full h-auto rounded-2xl shadow-lg object-cover"
+            className="w-full h-auto rounded-2xl shadow-lg "
           />
         </div>
 

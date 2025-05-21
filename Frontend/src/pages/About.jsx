@@ -14,12 +14,12 @@ const About = () => {
       {/* ABOUT SECTION */}
       <div className="my-10 flex flex-col md:flex-row gap-16">
         <img
-          className="w-full md:max-w-[450px] rounded-lg shadow-md"
+          className="w-full md:max-w-[350px]  shadow-md"
           src={assets.about_img}
           alt="About"
         />
 
-        <div className="flex flex-col justify-center gap-5 md:w-2/4 text-gray-600">
+        <div className="flex flex-col justify-center gap-4 md:w-2/4 text-gray-500">
           <p className="text-lg leading-relaxed">
             We are a dedicated team of innovators committed to crafting
             exceptional products that positively influence our customers' lives.
@@ -36,6 +36,7 @@ const About = () => {
             offer something for everyone. All of our products are sourced from
             trusted brands, ensuring you receive the best quality.
           </p>
+          
           <b className="text-gray-800 text-xl">Our Mission</b>
           <p className="text-lg leading-relaxed">
             At SheMart, our mission is to empower you with an unparalleled
@@ -56,7 +57,7 @@ const About = () => {
       <div className="flex flex-col md:flex-row text-sm mb-20 gap-5">
         {/* Quality Assurance */}
         <div className="border px-10 md:px-16 py-10 flex flex-col gap-5 rounded-lg shadow-sm items-center text-center">
-          <FaCheckCircle size={40} className="text-green-500" />
+          <FaCheckCircle size={40} className="text-green-800" />
           <b className="text-lg text-gray-800">Quality Assurance</b>
           <p className="text-gray-600 text-base leading-relaxed">
             We meticulously select and vet each product to ensure it meets our

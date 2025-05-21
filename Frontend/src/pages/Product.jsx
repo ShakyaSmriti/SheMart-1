@@ -239,7 +239,7 @@ const Product = () => {
                     className="w-full h-auto aspect-[2/1] object-contain "
                     style={{ transform: 'scale(1.5)', transformOrigin: 'middle' }}
                   />
-                  <div className="text-xs text-center py-1">Medium Zoom</div>
+                 
                 </div>
                 
                 <div 
@@ -252,7 +252,7 @@ const Product = () => {
                     className="w-full h-auto aspect-[2/1] object-contain"
                     style={{ transform: 'scale(1.5)', transformOrigin: 'center' }}
                   />
-                  <div className="text-xs text-center py-1">High Zoom</div>
+                
                 </div>
               </>
             )}

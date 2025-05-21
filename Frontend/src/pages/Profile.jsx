@@ -130,7 +130,7 @@ const Profile = () => {
         updatedData,
         {
           headers: {
-            token: token, // Changed from Authorization: Bearer ${token}
+            token: token, 
             "Content-Type": "application/json",
           },
         }
@@ -303,5 +303,4 @@ const Profile = () => {
     </div>
   );
 };
-
 export default Profile;
