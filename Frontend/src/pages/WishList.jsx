@@ -152,7 +152,17 @@ const WishList = () => {
                       }
                       const mediaType =
                         productData.video?.length > 0 ? "video" : "image";
-                      addToCart(productData._id, selectedSize, mediaType);
+                      
+                      // Call addToCart with the correct parameters
+                      const result = addToCart(productData._id, selectedSize, 1, mediaType);
+                      
+                      // Show success message if the item was added successfully
+                      if (result !== false) {
+                        // toast.success("Item added to cart successfully!", 
+                        //   {
+                        
+                        // });
+                      }
                     }}
                     className="bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
                   >

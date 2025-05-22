@@ -43,25 +43,25 @@ const ShopContextProvider = (props) => {
   };
 
   // Add an item to the cart
-  const addToCart = async (itemId, size, quantity = 1) => {
+  const addToCart = async (itemId, size, quantity = 1, mediaType) => {
     // Check if user is logged in
     if (!token) {
       toast.error("Please login to add items to cart");
       navigate("/login");
-      return;
+      return false;
     }
 
     // Ensure a size is selected
     if (!size) {
       toast.error("Select Product Size");
-      return;
+      return false;
     }
 
     // Find the product by ID from local state
     const productData = products.find((product) => product._id === itemId);
     if (!productData) {
       toast.error("Product not found");
-      return;
+      return false;
     }
 
     // Prepare local cartData
@@ -73,7 +73,7 @@ const ShopContextProvider = (props) => {
 
     // Optionally track media type (image/video)
     if (!cartData[itemId].type) {
-      cartData[itemId].type = productData.video ? "video" : "image";
+      cartData[itemId].type = mediaType || (productData.video ? "video" : "image");
     }
 
     // Update cart state optimistically
@@ -84,7 +84,7 @@ const ShopContextProvider = (props) => {
     try {
       if (!backendUrl) {
         console.error("Backend URL is not defined");
-        return;
+        return false;
       }
 
       const response = await axios.post(
@@ -94,11 +94,13 @@ const ShopContextProvider = (props) => {
       );
 
       toast.success(response.data.message || "Item added to cart");
+      return true;
     } catch (error) {
       console.error("Error adding to cart:", error);
       const errorMessage =
         error.response?.data?.message || "Failed to add item to cart.";
       toast.error(errorMessage);
+      return false;
     }
   };
 

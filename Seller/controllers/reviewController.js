@@ -8,7 +8,7 @@ const addReview = async (req, res) => {
 
     const data = {
       product_id: productId,
-      user: req.user?.id, 
+      user: req.user?.userId, // or req.user._id if using auth middleware
       rating: req.body.rating,
       description: req.body.description,
     };

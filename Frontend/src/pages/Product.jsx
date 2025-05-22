@@ -311,7 +311,7 @@ const Product = () => {
             {productData.stock > 0 ? (
               productData.stock
             ) : (
-              <span className=" text-red-500"> Out of Stock</span>
+              <span className=" text-red-600"> Out of Stock</span>
             )}
           </p>
 
