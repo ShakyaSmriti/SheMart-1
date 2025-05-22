@@ -23,7 +23,7 @@ router.post("/admin", adminLogin);
 // Protected routes
 router.get("/profile", verifyToken, getProfile);
 router.put("/update", verifyToken, updateUserProfile);
-router.delete("/delete", verifyToken, deleteUser);  // Changed from deleteUserAccount to deleteUser
+router.delete("/delete", verifyToken, deleteUser);  
 
 // Admin routes
 router.get("/list", allUsers);

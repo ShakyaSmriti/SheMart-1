@@ -5,7 +5,7 @@ import {
   updateCart,
   restoreStockFromCart,
 } from "../controllers/cartController.js";
-import { verifyToken } from "../middleware/Auth.js";  // Changed from default import to named import
+import { verifyToken } from "../middleware/Auth.js";  
 
 const cartRouter = express.Router();
 

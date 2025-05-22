@@ -290,11 +290,12 @@ const manageStock = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Stock updated ",
-      product: updatedProduct,
-    });
+    // res.status(200).json({
+    //   success: true,
+    //   message: "Stock updated ",
+    //   product: updatedProduct,
+    // });
+
   } catch (error) {
     console.error("Error managing stock:", error.message);
     res.status(500).json({

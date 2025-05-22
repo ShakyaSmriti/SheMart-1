@@ -109,7 +109,7 @@ export default function Footer() {
       {/* Footer Bottom */}
       <div>
         <hr />
-        <p className="py-5 text-sm text-center text-gray-500">
+        <p className="py-5 text-sm text-center text-gray-800">
           &copy; {new Date().getFullYear()} SheMart. All Rights Reserved.
         </p>
       </div>

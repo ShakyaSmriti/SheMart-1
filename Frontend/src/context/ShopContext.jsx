@@ -162,7 +162,7 @@ const ShopContextProvider = (props) => {
           headers: { token },
         }
       );
-      toast.success("Stock restored successfully");
+      // toast.success("Stock restored successfully");
     } catch (err) {
       console.error("Stock restore failed:", err);
       toast.error("Failed to restore stock");

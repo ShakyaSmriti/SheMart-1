@@ -33,7 +33,7 @@ const Product = () => {
   const [quantity, setQuantity] = useState(1);
   const [roundedUpRating, setRoundedUpRating] = useState(0);
   const [isInWishlist, setIsInWishlist] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1); // Default zoom level
+  const [zoomLevel, setZoomLevel] = useState(1); // 
 
   // console.log(`wishlistItems`, wishlistItems);
 
@@ -283,7 +283,7 @@ const Product = () => {
               className={`cursor-pointer transition-colors duration-200 ${
                 isInWishlist ? "text-red-800" : "text-gray-900"
               }`}
-              size={25}
+              size={30}
               onClick={() => addToWishlist(productId)}
             />
           </div>
@@ -295,7 +295,7 @@ const Product = () => {
                   i < roundedUpRating ? assets.star_icon : assets.star_dull_icon
                 }
                 alt="Star"
-                className="w-3.5"
+                className="w-4"
               />
             ))}
             <p className="pl-2">({review.length})</p>
@@ -303,10 +303,10 @@ const Product = () => {
           <p>
             {currency} {productData.price}
           </p>
-          <p className="mt-5 text-gray-500 md:w-4/5">
+          <p className="mt-5 text-gray-600 md:w-4/5">
             {productData.description}
           </p>
-          <p className="mt-2">
+          <p className="mt-3">
             Stock:{" "}
             {productData.stock > 0 ? (
               productData.stock
@@ -315,14 +315,18 @@ const Product = () => {
             )}
           </p>
 
-          <div className="flex flex-col gap-4 my-8">
+          <div className="flex flex-col gap-4 my-5">
             <p>Select Size</p>
             <div className="flex gap-2">
               {productData.sizes?.map((item, index) => (
                 <button
                   onClick={() => setSize(item)}
                   className={`border py-2 px-4 bg-gray-100 ${
-                    item === size ? "border-orange-500" : ""
+                     item === size
+              ? "border-orange-500 bg-orange-100 text-orange-700 hover:bg-orange-200"
+              : "border-gray-300 bg-gray-100 text-gray-700 "
+                   
+
                   }`}
                   key={index}
                 >
@@ -378,7 +382,7 @@ const Product = () => {
           <div className="text-sm text-gray-500 mt-5 flex flex-col gap-1">
             <p>100% Original Product.</p>
             <p>Cash on delivery is available on this product.</p>
-            <p>Easy return and exchange policy within 7 days.</p>
+            <p>Easy return and exchange policy .</p>
           </div>
         </div>
       </div>

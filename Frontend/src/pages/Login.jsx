@@ -58,7 +58,7 @@ const Login = () => {
         } else {
           toast.error(response.data.message);
         }
-      } else {
+      } else { 
         const response = await axios.post(`${backendUrl}/api/user/login`, {
           email,
           password,
