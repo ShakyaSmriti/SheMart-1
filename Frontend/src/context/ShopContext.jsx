@@ -33,7 +33,7 @@ const ShopContextProvider = (props) => {
   const fetchData = async (endpoint) => {
     try {
       const response = await axios.get(`${backendUrl}${endpoint}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       });
       return response.data;
     } catch (error) {
@@ -43,25 +43,25 @@ const ShopContextProvider = (props) => {
   };
 
   // Add an item to the cart
-  const addToCart = async (itemId, size, quantity = 1, mediaType) => {
+  const addToCart = async (itemId, size, quantity = 1) => {
     // Check if user is logged in
     if (!token) {
       toast.error("Please login to add items to cart");
       navigate("/login");
-      return false;
+      return;
     }
 
     // Ensure a size is selected
     if (!size) {
       toast.error("Select Product Size");
-      return false;
+      return;
     }
 
     // Find the product by ID from local state
     const productData = products.find((product) => product._id === itemId);
     if (!productData) {
       toast.error("Product not found");
-      return false;
+      return;
     }
 
     // Prepare local cartData
@@ -73,34 +73,31 @@ const ShopContextProvider = (props) => {
 
     // Optionally track media type (image/video)
     if (!cartData[itemId].type) {
-      cartData[itemId].type = mediaType || (productData.video ? "video" : "image");
+      cartData[itemId].type = productData.video ? "video" : "image";
     }
 
     // Update cart state optimistically
     setCartItems(cartData);
-    console.log("Updated cart items:", cartData);
 
     // API call to update cart in backend
     try {
       if (!backendUrl) {
         console.error("Backend URL is not defined");
-        return false;
+        return;
       }
 
       const response = await axios.post(
         `${backendUrl}/api/cart/add`,
-        { itemId, size, quantity },
+        { itemId, size, quantity }, // 🔄 send quantity
         { headers: { token } }
       );
 
       toast.success(response.data.message || "Item added to cart");
-      return true;
     } catch (error) {
       console.error("Error adding to cart:", error);
       const errorMessage =
         error.response?.data?.message || "Failed to add item to cart.";
       toast.error(errorMessage);
-      return false;
     }
   };
 
@@ -233,103 +230,119 @@ const ShopContextProvider = (props) => {
 
   // Add an item to the wishlist
   const addToWishlist = async (productId) => {
-  if (!token) {
-    toast.error("Please login to add items to wishlist", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-    navigate("/login");
-    return { success: false };
-  }
-
-  const isInWishlist = wishlistItems.some(item => item._id === productId);
-
-  // Find the full product data from catalog
-  const productToAdd = products.find(p => p._id === productId);
-  if (!productToAdd) {
-    toast.error("Product not found", { autoClose: 3000 });
-    return { success: false };
-  }
-
-  try {
-    // Optimistic UI update
-    if (isInWishlist) {
-      setWishlistItems(prev => prev.filter(item => item._id !== productId));
-    } else {
-      // Add full product to wishlist
-      setWishlistItems(prev => [...prev, productToAdd]);
-    }
-
-    // API Call
-    const response = await axios.post(
-      `${backendUrl}/api/wishlist/add`,
-      { productId },
-      { headers: { token } }
-    );
-
-    if (response.data.success) {
-      toast.success(response.data.message, {
-        position: "top-right",
-        autoClose: 2000,
-      });
-
-      return response.data;
-    } else {
-      // Revert on failure
-      if (isInWishlist) {
-        setWishlistItems(prev => [...prev, productToAdd]);
-      } else {
-        setWishlistItems(prev => prev.filter(item => item._id !== productId));
-      }
-
-      toast.error(response.data.message || "Failed to update wishlist", {
+    if (!token) {
+      toast.error("Please login to add items to wishlist", {
         position: "top-right",
         autoClose: 3000,
       });
-
-      return response.data;
-    }
-  } catch (error) {
-    // Revert on error
-    if (isInWishlist) {
-      setWishlistItems(prev => [...prev, productToAdd]);
-    } else {
-      setWishlistItems(prev => prev.filter(item => item._id !== productId));
+      navigate("/login");
+      return { success: false };
     }
 
-    console.error("Error updating wishlist:", error);
-    toast.error(error.response?.data?.message || "Failed to update wishlist", {
-      position: "top-right",
-      autoClose: 3000,
-    });
+    const isInWishlist = wishlistItems.some((item) => item._id === productId);
 
-    return { success: false, message: "Network or server error" };
-  }
-};
+    // Find the full product data from catalog
+    const productToAdd = products.find((p) => p._id === productId);
+    if (!productToAdd) {
+      toast.error("Product not found", { autoClose: 3000 });
+      return { success: false };
+    }
+
+    try {
+      // Optimistic UI update
+      if (isInWishlist) {
+        setWishlistItems((prev) =>
+          prev.filter((item) => item._id !== productId)
+        );
+      } else {
+        // Add full product to wishlist
+        setWishlistItems((prev) => [...prev, productToAdd]);
+      }
+
+      // API Call
+      const response = await axios.post(
+        `${backendUrl}/api/wishlist/add`,
+        { productId },
+        { headers: { token } }
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message, {
+          position: "top-right",
+          autoClose: 2000,
+        });
+
+        return response.data;
+      } else {
+        // Revert on failure
+        if (isInWishlist) {
+          setWishlistItems((prev) => [...prev, productToAdd]);
+        } else {
+          setWishlistItems((prev) =>
+            prev.filter((item) => item._id !== productId)
+          );
+        }
+
+        toast.error(response.data.message || "Failed to update wishlist", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+
+        return response.data;
+      }
+    } catch (error) {
+      // Revert on error
+      if (isInWishlist) {
+        setWishlistItems((prev) => [...prev, productToAdd]);
+      } else {
+        setWishlistItems((prev) =>
+          prev.filter((item) => item._id !== productId)
+        );
+      }
+
+      console.error("Error updating wishlist:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to update wishlist",
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+
+      return { success: false, message: "Network or server error" };
+    }
+  };
 
   // Fetch the user's wishlist data from the backend
   const getUserWishlist = async (token) => {
-  try {
-    if (!token) throw new Error("No authentication token provided");
+    try {
+      if (!token) throw new Error("No authentication token provided");
 
-    const response = await axios.get(`${backendUrl}/api/wishlist/get`, {
-      headers: { token },
-    });
+      const response = await axios.get(`${backendUrl}/api/wishlist/get`, {
+        headers: { token },
+      });
 
-    if (response.data.success) {
-      const wishList = Array.isArray(response.data.wishList)
-        ? response.data.wishList
-        : [];
+      if (response.data.success) {
+        const wishList = Array.isArray(response.data.wishList)
+          ? response.data.wishList
+          : [];
 
-      setWishlistItems(wishList);
-    } else {
-      throw new Error(response.data.message || "Failed to fetch wishlist data");
+        setWishlistItems(wishList);
+      } else {
+        throw new Error(
+          response.data.message || "Failed to fetch wishlist data"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching wishlist:",
+        error.response?.data || error.message
+      );
+      toast.error(
+        error.response?.data?.message || "Error fetching wishlist data"
+      );
     }
-  } catch (error) {
-    console.error("Error fetching wishlist:", error.response?.data || error.message);
-    toast.error(error.response?.data?.message || "Error fetching wishlist data");
-  }
-};
+  };
 
   // Fetch the user's profile data from the backend
   const getUserData = async (token) => {
@@ -379,7 +392,7 @@ const ShopContextProvider = (props) => {
   // Initialize data when component mounts
   useEffect(() => {
     getProductsData();
-    
+
     // Get token from localStorage
     const savedToken = localStorage.getItem("token");
     if (savedToken) {

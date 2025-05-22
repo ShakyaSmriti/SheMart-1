@@ -42,6 +42,7 @@ const Cart = () => {
     return Object.keys(cartItems)
       .map((productId) => {
         const productData = products.find((p) => p._id === productId);
+        console.log(`productData`, productData);
 
         if (!productData) {
           console.warn(`Product with ID ${productId} not found`);
@@ -99,15 +100,8 @@ const Cart = () => {
 
                 {/* Quantity input */}
                 <input
-                  onChange={(e) => {
-                    const newValue = Number(e.target.value);
-                    if (newValue > 0) {
-                      updateQuantity(productId, size, newValue);
-                    }
-                  }}
-                  className="border text-center max-w-10 sm:max-w-20 px-1 sm:px-2 py-1"
+                  className="border  text-center max-w-10 sm:max-w-20 px-1 sm:px-2 py-1 "
                   value={quantity}
-                  min="1"
                 />
 
                 {/* Remove button */}
