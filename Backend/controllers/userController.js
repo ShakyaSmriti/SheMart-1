@@ -57,12 +57,10 @@ const registerUser = async (req, res) => {
     }
 
     if (password.length < 8) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Password should be at least 8 characters long.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Password should be at least 8 characters long.",
+      });
     }
 
     if (password !== confirmPassword) {
@@ -73,12 +71,10 @@ const registerUser = async (req, res) => {
 
     const allowedGenders = ["Male", "Female", "Other"];
     if (!allowedGenders.includes(gender)) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid gender. Please select Male, Female, or Other.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid gender. Please select Male, Female, or Other.",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -118,9 +114,9 @@ const adminLogin = async (req, res) => {
         { id: "admin", role: "admin", email: process.env.ADMIN_EMAIL },
         process.env.JWT_SECRET
       );
-      
+
       console.log("Generated admin token:", token);
-      
+
       res.status(200).json({
         success: true,
         message: "Admin logged in successfully.",
@@ -130,6 +126,35 @@ const adminLogin = async (req, res) => {
       return res
         .status(401)
         .json({ success: false, message: "Invalid Credentials." });
+    }
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
+  }
+};
+
+// Seller login route
+const sellerLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (
+      email === process.env.SELLER_EMAIL &&
+      password === process.env.SELLER_PASSWORD
+    ) {
+      const token = jwt.sign(email + password, process.env.JWT_SECRET);
+      res.status(200).json({
+        success: true,
+        message: "Seller logged in successfully.",
+        token,
+      });
+    } else {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid Credentials.",
+      });
     }
   } catch (error) {
     console.log(error);
@@ -329,6 +354,7 @@ export {
   loginUser,
   registerUser,
   adminLogin,
+  sellerLogin,
   allUsers,
   deleteUser,
   forgetPasswordMail,

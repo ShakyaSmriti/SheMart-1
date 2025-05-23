@@ -14,7 +14,7 @@ const List = ({ token }) => {
     try {
       const response = await axios.get(`${backendUrl}/api/product/all`);
 
-      // console.log(response.data);
+      console.log(response.data);
       if (response.data.success) {
         setList(response.data.products || []);
       } else {
@@ -42,7 +42,7 @@ const List = ({ token }) => {
       setList((prevList) => prevList.filter((item) => item._id !== id));
 
       const response = await axios.post(
-        `${backendUrl}/api/product/delete`,
+        `${backendUrl}/api/product/remove`,
         { id },
         { headers: { token } } // Ensure correct header format
       );
@@ -71,11 +71,12 @@ const List = ({ token }) => {
       <h3 className="font-700 text-lg mb-2">All Products List</h3>
       <div className="flex flex-col gap-2">
         {/* -----------List Table Title------------ */}
-        <div className="hidden md:grid grid-cols-[1fr_3fr_1fr_1fr_1fr_1fr] items-center p-2 bg-gray-100 text-sm">
+        <div className="hidden md:grid grid-cols-[1fr_3fr_1fr_1fr_1fr_1fr_1fr] items-center p-2 bg-gray-100 text-sm">
           <b>Image</b>
           <b>Name</b>
           <b>Category</b>
           <b>Price</b>
+          <b>Stock</b>
           <b>Edit</b>
           <b>Delete</b>
         </div>
@@ -85,7 +86,7 @@ const List = ({ token }) => {
           list.map((item) => (
             <div
               key={item._id}
-              className="grid grid-cols-[1fr_3fr_1fr] md:grid-cols-[1fr_3fr_1fr_1fr_1fr_1fr] items-center gap-2 p-2 border-2 border-gray-200  text-sm"
+              className="grid grid-cols-[1fr_3fr_1fr] md:grid-cols-[1fr_3fr_1fr_1fr_1fr_1fr_1fr] items-center gap-2 p-2 border-2 border-gray-200  text-sm"
             >
               {/* Conditionally render Image or Video based on available media */}
               {item.video?.length > 0 ? (
@@ -113,6 +114,7 @@ const List = ({ token }) => {
                 {currency}
                 {item.price}
               </p>
+              <p>{item.stock}</p>
 
               <p className="text-right md:text-center cursor-pointer text-lg">
                 <NavLink to={`/update/${item._id}`}>

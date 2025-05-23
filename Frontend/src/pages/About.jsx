@@ -32,7 +32,7 @@ const About = () => {
             Since our founding, we've built a carefully curated collection of
             top-tier products that cater to a wide range of tastes and
             preferences. From the latest fashion trends to cutting-edge
-            technology, and from beauty essentials to home décor, we strive to
+            technology, we strive to
             offer something for everyone. All of our products are sourced from
             trusted brands, ensuring you receive the best quality.
           </p>

@@ -88,7 +88,7 @@ const ShopContextProvider = (props) => {
 
       const response = await axios.post(
         `${backendUrl}/api/cart/add`,
-        { itemId, size, quantity }, // 🔄 send quantity
+        { itemId, size, quantity }, 
         { headers: { token } }
       );
 
@@ -134,7 +134,7 @@ const ShopContextProvider = (props) => {
           autoClose: 2000,
           hideProgressBar: false,
           closeOnClick: true,
-          pauseOnHover: true,
+          pauseOnHover: true, 
           draggable: true,
         });
       }

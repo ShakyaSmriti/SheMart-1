@@ -419,7 +419,7 @@ const Product = () => {
             />
             <button
               onClick={() => handleAddReview(productId)}
-              className="bg-black text-white px-8 py-2 rounded-lg text-sm active:bg-gray-700"
+              className="bg-black text-white px-8 py-2  text-sm active:bg-gray-700"
             >
               Add Review
             </button>
@@ -432,7 +432,7 @@ const Product = () => {
           {review && review.length > 0 ? (
             review.map((item, index) => (
               <div key={index} className="border-b py-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-20">
                   <p className="font-bold">
                     {item.user === token ? "You" : "Anonymous"}
                   </p>

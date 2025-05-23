@@ -77,7 +77,7 @@ const PlaceOrder = () => {
           navigate("/khalti", { 
             state: { 
               amount: amount,
-              purpose: "SheMart Order",
+              purpose: "SheMart",
               orderData: orderData
             } 
           });
