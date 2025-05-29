@@ -35,9 +35,7 @@ const Product = () => {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1); // 
 
-  // console.log(`wishlistItems`, wishlistItems);
-
-  // Check if the product is in the wishlist
+  
 
   useEffect(() => {
     if (Array.isArray(wishlistItems)) {
@@ -184,6 +182,37 @@ const Product = () => {
       return;
     }
     setQuantity(newValue);
+  };
+
+  // Add a new function to handle Buy Now
+  const handleBuyNow = () => {
+    if (!size) {
+      toast.error("Please select a size before proceeding.");
+      return;
+    }
+    
+    if (productData.stock === 0) {
+      toast.error("This product is out of stock.");
+      return;
+    }
+    
+    // Add to cart with the selected size and quantity
+    const mediaType = media?.endsWith(".mp4") ? "video" : "image";
+    addToCart(productData._id, size, quantity, mediaType);
+    
+    // Update stock in UI
+    setProductData((prev) => ({
+      ...prev,
+      stock: prev.stock - quantity,
+    }));
+    
+    // Call manageStock to update stock in context/backend
+    if (typeof manageStock === "function") {
+      manageStock(productData._id, quantity);
+    }
+    
+    // Navigate to place order page
+    navigate("/place-order");
   };
 
   return productData ? (
@@ -363,19 +392,37 @@ const Product = () => {
               } else {
                 addToCart(productData._id, size, quantity, "image");
               }
-              // Update stock in UI
-              setProductData((prev) => ({
-                ...prev,
-                stock: prev.stock - quantity,
-              }));
-              // Call manageStock to update stock in context/backend
-              if (typeof manageStock === "function") {
-                manageStock(productData._id, quantity);
-              }
+            
             }}
             className="bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
           >
             ADD TO CART
+          </button>
+
+          {/* Buy Now button */}
+          <button
+            onClick={() => {
+              if (!size) {
+                toast.error("Please select a size before proceeding.");
+                return;
+              }
+              
+              if (productData.stock === 0) {
+                toast.error("This product is out of stock.");
+                return;
+              }
+              
+              // Add to cart with the selected size and quantity
+              const mediaType = media?.endsWith(".mp4") ? "video" : "image";
+              addToCart(productData._id, size, quantity, mediaType);
+              
+              
+              // Navigate to place order page
+              navigate("/place-order");
+            }}
+            className="ml-4 bg-pink-600 text-white px-8 py-3 text-sm active:bg-pink-700"
+          >
+            BUY NOW
           </button>
 
           <hr className="mt-8 sm:w-4/5" />

@@ -18,6 +18,7 @@ const PlaceOrder = () => {
     delivery_fee,
     products,
     user, // Access user from context if available
+    manageStock, // Make sure manageStock is included in the context
   } = useContext(ShopContext);
 
   const [formData, setFormData] = useState({
@@ -91,6 +92,7 @@ const PlaceOrder = () => {
 
     try {
       let orderItems = [];
+      // Process cart items and update stock
       for (const items in cartItems) {
         for (const item in cartItems[items]) {
           if (cartItems[items][item] > 0) {
@@ -101,6 +103,11 @@ const PlaceOrder = () => {
               itemInfo.size = item;
               itemInfo.quantity = cartItems[items][item];
               orderItems.push(itemInfo);
+              
+              // Update stock for each item when order is placed
+              if (typeof manageStock === "function") {
+                await manageStock(items, cartItems[items][item]);
+              }
             }
           }
         }

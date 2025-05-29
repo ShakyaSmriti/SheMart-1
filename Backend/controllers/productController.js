@@ -82,11 +82,6 @@ const addProduct = async (req, res) => {
     const product = new productModel(productData);
     await product.save();
 
-    return res.status(201).json({
-      success: true,
-      message: "Product added successfully.",
-      product,
-    });
   } catch (error) {
     console.error("Error in addProduct:", error);
     return res.status(500).json({
@@ -290,11 +285,11 @@ const manageStock = async (req, res) => {
       });
     }
 
-    // res.status(200).json({
-    //   success: true,
-    //   message: "Stock updated ",
-    //   product: updatedProduct,
-    // });
+    res.status(200).json({
+      success: true,
+      message: "Stock updated successfully",
+      product: updatedProduct,
+    });
 
   } catch (error) {
     console.error("Error managing stock:", error.message);
