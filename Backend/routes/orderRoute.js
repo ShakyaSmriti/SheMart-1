@@ -16,7 +16,7 @@ const orderRouter = express.Router();
 
 // Admin features
 orderRouter.post("/list", allOrders);
-orderRouter.post("/status", adminAuth, updateStatus);
+orderRouter.post("/status",  updateStatus);
 orderRouter.post("/delete", adminAuth, deleteOrder);
 
 // Payment features

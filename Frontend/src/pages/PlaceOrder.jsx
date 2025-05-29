@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import Title from "./../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
@@ -17,6 +17,7 @@ const PlaceOrder = () => {
     getCartAmount,
     delivery_fee,
     products,
+    user, // Access user from context if available
   } = useContext(ShopContext);
 
   const [formData, setFormData] = useState({
@@ -26,6 +27,47 @@ const PlaceOrder = () => {
     address: "",
     phone: "",
   });
+
+  // Auto-fill form with user data when component mounts
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // If user is already in context, use that data
+        if (user) {
+          setFormData({
+            firstName: user.name?.split(' ')[0] || "",
+            lastName: user.name?.split(' ')[1] || "",
+            email: user.email || "",
+            address: user.address || "",
+            phone: user.phone || "",
+          });
+          return;
+        }
+        
+        // Otherwise fetch user data from API
+        if (token) {
+          const response = await axios.get(`${backendUrl}/api/user/profile`, {
+            headers: { token }
+          });
+          
+          if (response.data.success) {
+            const userData = response.data.user;
+            setFormData({
+              firstName: userData.name?.split(' ')[0] || "",
+              lastName: userData.name?.split(' ')[1] || "",
+              email: userData.email || "",
+              address: userData.address || "",
+              phone: userData.phone || "",
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    
+    fetchUserData();
+  }, []);
 
   const onChangeHandler = (event) => {
     const name = event.target.name;

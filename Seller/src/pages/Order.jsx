@@ -152,6 +152,9 @@ const Order = ({ token }) => {
                 {order.amount}
               </p>
 
+              
+              
+
               {/* Order Status Dropdown */}
               <select
                 onChange={(event) => statusHandler(event, order._id)}
@@ -164,6 +167,16 @@ const Order = ({ token }) => {
                 <option value="Out for delivery">Out for delivery</option>
                 <option value="Delivered">Delivered</option>
               </select>
+               {/* Show cancellation notice if order is cancelled */}
+                {order.status === "Cancelled" && (
+                  <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded lg:col-span-6">
+                    <p className="font-semibold">Order cancelled by customer</p>
+                  </div>
+                )}
+
+
+
+              
             </div>
           </div>
         ))}

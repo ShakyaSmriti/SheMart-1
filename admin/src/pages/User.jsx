@@ -34,6 +34,7 @@ const User = ({ token }) => {
           headers: { token },
         }
       );
+
       if (response.data.success) {
         toast.success("User deleted successfully.");
         fetchAllUsers(); // Refresh the user list after deletion
